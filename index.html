@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Code Lookup — ICD · SNOMED CT · LOINC · ATC · RxCUI · CPT · HCPCS · NDC</title>
+  <title>Code Lookup — ICD-10 · SNOMED CT · LOINC · ATC · RxCUI · CPT · HCPCS · NDC</title>
   <style>
     :root {
       --primary: #6B46E5;
@@ -225,6 +225,63 @@
     .copied-toast.show { opacity: 1; animation: fadeToast 2s ease; }
     @keyframes fadeToast { 0%, 20% { opacity: 1; } 100% { opacity: 0; } }
     @media (max-width: 480px) { .conversion-buttons { flex-direction: column; } .conversion-buttons .chip { width: 100%; } }
+    .search-by-name-section {
+      background: var(--white);
+      border: 2px solid var(--lavender);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 2rem;
+      transition: opacity 0.3s ease, margin 0.3s ease;
+      overflow: hidden;
+    }
+    .search-by-name-section h2 { font-size: 1.35rem; color: var(--text); margin: 0 0 0.5rem 0; }
+    .search-by-name-section .subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 1.25rem; }
+    .search-input-container { position: relative; margin-bottom: 1rem; }
+    #diagnosisNameInput {
+      width: 100%; padding: 14px 44px 14px 16px; font-size: 1rem;
+      border: 2px solid var(--border); border-radius: 12px; background: var(--white);
+      box-sizing: border-box;
+    }
+    #diagnosisNameInput:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(107, 70, 229, 0.1); }
+    #clearSearchBtn {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: var(--border); border: none; border-radius: 50%; width: 28px; height: 28px;
+      cursor: pointer; font-size: 16px; color: var(--text-muted); line-height: 1;
+    }
+    #clearSearchBtn:hover { background: #D1D5DB; color: var(--text); }
+    .example-searches { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 1.25rem; }
+    .example-searches .label { color: #8B7AB8; font-size: 13px; font-weight: 500; }
+    .example-btn {
+      background: #F3F4F6; border: 1px solid var(--border); padding: 6px 12px; border-radius: 16px;
+      font-size: 13px; color: var(--primary); cursor: pointer; font-family: inherit;
+    }
+    .example-btn:hover { background: var(--lavender); border-color: var(--primary); }
+    .search-results { max-height: 500px; overflow-y: auto; margin-top: 1.25rem; }
+    .diagnosis-result-item {
+      background: var(--white); border: 2px solid var(--lavender); border-left: 4px solid var(--primary);
+      border-radius: 12px; padding: 16px; margin-bottom: 12px; cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .diagnosis-result-item:hover {
+      background: #FAFAFE; border-color: var(--primary); transform: translateX(4px);
+      box-shadow: 0 4px 12px rgba(107, 70, 229, 0.15);
+    }
+    .diagnosis-result-code { font-size: 18px; font-weight: 700; color: #6B46E5; margin-bottom: 8px; letter-spacing: 0.5px; }
+    .diagnosis-result-desc { font-size: 15px; font-weight: 400; color: #374151; line-height: 1.5; margin: 0; }
+    .search-loading-state { text-align: center; padding: 40px; color: var(--text-muted); }
+    .search-loading-state .search-spinner {
+      display: block; width: 40px; height: 40px; margin: 0 auto 16px;
+      border: 3px solid var(--lavender); border-top-color: var(--primary); border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    .search-no-results { text-align: center; padding: 40px; color: var(--text-muted); }
+    .search-no-results-icon { font-size: 48px; margin-bottom: 16px; }
+    .search-results-count { font-size: 14px; font-weight: 500; color: #6B7280; margin-bottom: 16px; }
+    @media (max-width: 768px) {
+      .search-by-name-section { padding: 20px; }
+      .search-results { max-height: 400px; }
+      .diagnosis-result-item { padding: 12px; }
+    }
     .app-footer {
       margin-top: 2rem;
       padding: 20px 1rem;
@@ -245,7 +302,7 @@
   <div class="container">
     <header class="header">
       <h1>🔍 Code Lookup</h1>
-      <p>ICD · SNOMED CT · LOINC · ATC · RxCUI · CPT · HCPCS · NDC — Official display names from trusted sources</p>
+      <p>ICD-10 · SNOMED CT · LOINC · ATC · RxCUI · CPT · HCPCS · NDC — Official display names from trusted sources</p>
     </header>
 
     <div class="section">
@@ -253,6 +310,31 @@
       <div class="radio-group" id="codeTypeChips" role="radiogroup" aria-label="Code type"></div>
       <div class="info-banner" id="codeTypeDescription" aria-live="polite"></div>
     </div>
+
+    <section id="diagnosisSearchSection" class="search-by-name-section" aria-label="Search by diagnosis or clinical term" style="display: none;">
+      <h2>🔍 Search by Diagnosis Name</h2>
+      <p class="subtitle" id="searchHint">Search ICD-10 codes by typing a condition or symptom (e.g., diabetes, headache, chest pain)</p>
+      <div class="search-input-container">
+        <input type="text" id="diagnosisNameInput" placeholder="Enter diagnosis or symptom..." autocomplete="off" aria-label="Search ICD-10 diagnosis by name" role="searchbox" aria-describedby="searchHint">
+        <button type="button" id="clearSearchBtn" aria-label="Clear search" style="display:none;">✕</button>
+      </div>
+      <div class="example-searches">
+        <span class="label">Try:</span>
+        <button type="button" class="example-btn" data-term="diabetes">diabetes</button>
+        <button type="button" class="example-btn" data-term="headache">headache</button>
+        <button type="button" class="example-btn" data-term="chest pain">chest pain</button>
+        <button type="button" class="example-btn" data-term="hypertension">hypertension</button>
+        <button type="button" class="example-btn" data-term="flu">flu</button>
+        <button type="button" class="example-btn" data-term="fever">fever</button>
+        <button type="button" class="example-btn" data-term="cough">cough</button>
+        <button type="button" class="example-btn" data-term="asthma">asthma</button>
+      </div>
+      <div id="searchLoading" class="search-loading-state" style="display:none;" aria-live="polite">
+        <div class="search-spinner"></div>
+        <p>Searching diagnoses...</p>
+      </div>
+      <div id="searchResults" class="search-results" style="display:none;" role="listbox" aria-label="Search results"></div>
+    </section>
 
     <div class="section">
       <label for="codeInput">Code</label>
@@ -277,7 +359,7 @@
       <p>1. Select a code type. 2. Enter a code. 3. Click Lookup.</p>
       <h3>API sources</h3>
       <ul>
-        <li><strong>ICD:</strong> NLM Clinical Tables (ICD-10-CM), WHO (ICD-11)</li>
+        <li><strong>ICD-10:</strong> NLM Clinical Tables (ICD-10-CM), WHO (ICD-11)</li>
         <li><strong>SNOMED CT:</strong> Snowstorm</li>
         <li><strong>LOINC:</strong> NLM Clinical Tables</li>
         <li><strong>ATC / RxCUI:</strong> NLM RxNorm</li>
@@ -295,7 +377,7 @@
 
   <script>
     const CODE_TYPES = [
-      { id: "icd", label: "ICD", description: "International Classification of Diseases. Used for diagnoses, billing, and statistics." },
+      { id: "icd", label: "ICD-10", description: "International Classification of Diseases, 10th revision. Used for diagnoses, billing, and statistics (ICD-10-CM)." },
       { id: "snomed", label: "SNOMED CT", description: "Comprehensive clinical terminology used for detailed electronic health records." },
       { id: "cpt", label: "CPT", description: "Current Procedural Terminology. Used for reporting medical procedures and services." },
       { id: "hcpcs", label: "HCPCS", description: "Healthcare Common Procedure Coding System. Used for supplies, equipment, and services (Level II)." },
@@ -322,7 +404,7 @@
       HCPCS: ["A4244", "J0135", "E0118"],
       NDC: ["00002-3105-02", "00003-2188-51", "00069-5420-66"]
     };
-    const CORS_PROXY = "https://api.allorigins.win/raw?url=";
+    const CORS_PROXY = "https://corsproxy.io/?";
     const RXNAV_REST = "https://rxnav.nlm.nih.gov/REST";
     const RXNAV_NDC_STATUS = "https://rxnav.nlm.nih.gov/REST/ndcstatus.json";
     const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
@@ -564,7 +646,7 @@
           const cPart = String(pair[0]).trim();
           const nPart = String(pair[1]).trim();
           if (cPart.toUpperCase() === codeUpper || cPart.toUpperCase().replace(/\./g, "") === codeNoDot)
-            return { display_name: nPart, code_label: "ICD Code", code_value: cPart, source: "NLM Clinical Tables API (ICD-10-CM)", term_type: null };
+            return { display_name: nPart, code_label: "ICD-10 Code", code_value: cPart, source: "NLM Clinical Tables API (ICD-10-CM)", term_type: null };
         }
         const cPart = String(pairs[0][0]).trim();
         const nPart = String(pairs[0][1]).trim();
@@ -572,7 +654,7 @@
         const codePre = codeNoDot.slice(0, 3);
         const cPre = cPartNoDot.slice(0, 3);
         if (cPartNoDot.indexOf(codePre) !== -1 || codeNoDot.indexOf(cPre) !== -1)
-          return { display_name: nPart, code_label: "ICD Code", code_value: cPart, source: "NLM Clinical Tables API (ICD-10-CM)", term_type: null };
+          return { display_name: nPart, code_label: "ICD-10 Code", code_value: cPart, source: "NLM Clinical Tables API (ICD-10-CM)", term_type: null };
       } catch (_) {}
       return null;
     }
@@ -589,7 +671,7 @@
             const fsn = data.fullySpecifiedName;
             name = typeof fsn === "object" && fsn && fsn["@value"] ? fsn["@value"] : (fsn ? String(fsn) : "—");
           }
-          return { display_name: name || "—", code_label: "ICD Code", code_value: code, source: "WHO ICD API", term_type: null };
+          return { display_name: name || "—", code_label: "ICD-10 Code", code_value: code, source: "WHO ICD API", term_type: null };
         } catch (_) {}
       }
       return null;
@@ -1164,8 +1246,101 @@
           updateExamples();
           clearMessage();
           document.getElementById("resultContainer").innerHTML = "";
+          handleDiagnosisSearchVisibility();
         });
       });
+      handleDiagnosisSearchVisibility();
+    }
+
+    function clearSearch() {
+      const input = document.getElementById("diagnosisNameInput");
+      const results = document.getElementById("searchResults");
+      const clearBtn = document.getElementById("clearSearchBtn");
+      if (input) input.value = "";
+      if (results) results.style.display = "none";
+      if (clearBtn) clearBtn.style.display = "none";
+    }
+
+    function updateSearchSectionLabels(typeId) {
+      const sectionTitle = document.querySelector("#diagnosisSearchSection h2");
+      const sectionSubtitle = document.querySelector("#diagnosisSearchSection .subtitle");
+      const searchInput = document.getElementById("diagnosisNameInput");
+      const examplesContainer = document.querySelector("#diagnosisSearchSection .example-searches");
+      if (typeId === "icd") {
+        if (sectionTitle) sectionTitle.textContent = "🔍 Search by Diagnosis Name";
+        if (sectionSubtitle) sectionSubtitle.textContent = "Search ICD-10 codes by typing a condition or symptom (e.g., diabetes, headache, chest pain)";
+        if (searchInput) searchInput.placeholder = "Enter diagnosis or symptom...";
+        if (examplesContainer) {
+          examplesContainer.innerHTML = `<span class="label">Try:</span>
+        <button type="button" class="example-btn" data-term="diabetes">diabetes</button>
+        <button type="button" class="example-btn" data-term="headache">headache</button>
+        <button type="button" class="example-btn" data-term="chest pain">chest pain</button>
+        <button type="button" class="example-btn" data-term="hypertension">hypertension</button>
+        <button type="button" class="example-btn" data-term="flu">flu</button>
+        <button type="button" class="example-btn" data-term="fever">fever</button>
+        <button type="button" class="example-btn" data-term="cough">cough</button>
+        <button type="button" class="example-btn" data-term="asthma">asthma</button>`;
+        }
+      } else if (typeId === "snomed") {
+        if (sectionTitle) sectionTitle.textContent = "🔍 Search by Clinical Term";
+        if (sectionSubtitle) sectionSubtitle.textContent = "Search SNOMED CT codes by typing a clinical term or finding (e.g., diabetes mellitus, migraine, hypertension)";
+        if (searchInput) searchInput.placeholder = "Enter clinical term or finding...";
+        if (examplesContainer) {
+          examplesContainer.innerHTML = `<span class="label">Try:</span>
+        <button type="button" class="example-btn" data-term="diabetes mellitus">diabetes mellitus</button>
+        <button type="button" class="example-btn" data-term="migraine">migraine</button>
+        <button type="button" class="example-btn" data-term="hypertension">hypertension</button>
+        <button type="button" class="example-btn" data-term="pneumonia">pneumonia</button>
+        <button type="button" class="example-btn" data-term="asthma">asthma</button>
+        <button type="button" class="example-btn" data-term="heart failure">heart failure</button>
+        <button type="button" class="example-btn" data-term="fracture">fracture</button>
+        <button type="button" class="example-btn" data-term="infection">infection</button>`;
+        }
+      } else if (typeId === "loinc") {
+        if (sectionTitle) sectionTitle.textContent = "🔍 Search by Lab or Observation Name";
+        if (sectionSubtitle) sectionSubtitle.textContent = "Search LOINC codes by test name or observation (e.g., glucose, hemoglobin, creatinine, sodium)";
+        if (searchInput) searchInput.placeholder = "Enter lab test or observation name...";
+        if (examplesContainer) {
+          examplesContainer.innerHTML = `<span class="label">Try:</span>
+        <button type="button" class="example-btn" data-term="glucose">glucose</button>
+        <button type="button" class="example-btn" data-term="hemoglobin">hemoglobin</button>
+        <button type="button" class="example-btn" data-term="creatinine">creatinine</button>
+        <button type="button" class="example-btn" data-term="sodium">sodium</button>
+        <button type="button" class="example-btn" data-term="potassium">potassium</button>
+        <button type="button" class="example-btn" data-term="cholesterol">cholesterol</button>
+        <button type="button" class="example-btn" data-term="white blood">white blood</button>
+        <button type="button" class="example-btn" data-term="troponin">troponin</button>`;
+        }
+      }
+      bindExampleSearchButtons();
+    }
+
+    function bindExampleSearchButtons() {
+      const exampleBtns = document.querySelectorAll("#diagnosisSearchSection .example-btn");
+      const input = document.getElementById("diagnosisNameInput");
+      const clearBtn = document.getElementById("clearSearchBtn");
+      exampleBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+          const term = btn.getAttribute("data-term") || "";
+          input.value = term;
+          clearBtn.style.display = "block";
+          searchByDiagnosisName(term);
+        });
+      });
+    }
+
+    function handleDiagnosisSearchVisibility() {
+      const selected = document.querySelector('input[name="codeType"]:checked');
+      const typeId = selected ? selected.value : "icd";
+      const section = document.getElementById("diagnosisSearchSection");
+      if (!section) return;
+      if (typeId === "icd" || typeId === "snomed" || typeId === "loinc") {
+        section.style.display = "block";
+        updateSearchSectionLabels(typeId);
+      } else {
+        section.style.display = "none";
+        clearSearch();
+      }
     }
 
     function updateExamples() {
@@ -1191,6 +1366,162 @@
     renderCodeTypeChips();
     updateExamples();
     renderHistory();
+
+    function debounce(fn, wait) {
+      let timeout;
+      return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => fn.apply(this, args), wait);
+      };
+    }
+
+    let diagnosisSearchController = null;
+    const ICD10_SEARCH_API = "https://clinicaltables.nlm.nih.gov/api/icd10cm/v3/search";
+    const SNOMED_SNOWSTORM_BASE = "https://snowstorm.snomedtools.org/snowstorm/snomed-ct";
+
+    async function searchByDiagnosisName(term) {
+      const t = (term || "").trim();
+      if (t.length < 2) {
+        document.getElementById("searchResults").style.display = "none";
+        return;
+      }
+      const selected = document.querySelector('input[name="codeType"]:checked');
+      const typeId = selected ? selected.value : "icd";
+      if (typeId !== "icd" && typeId !== "snomed" && typeId !== "loinc") return;
+      const searchResults = document.getElementById("searchResults");
+      const loadingEl = document.getElementById("searchLoading");
+      if (diagnosisSearchController) diagnosisSearchController.abort();
+      diagnosisSearchController = new AbortController();
+      loadingEl.style.display = "block";
+      searchResults.style.display = "none";
+      try {
+        if (typeId === "snomed") {
+          const apiUrl = `${SNOMED_SNOWSTORM_BASE}/MAIN/concepts?term=${encodeURIComponent(t)}&limit=15`;
+          const res = await fetch(apiUrl, { signal: diagnosisSearchController.signal });
+          if (!res.ok) throw new Error("Snowstorm request failed");
+          const data = await res.json();
+          loadingEl.style.display = "none";
+          const items = data.items || [];
+          const list = items.map(item => {
+            const code = (item.conceptId != null) ? String(item.conceptId).trim() : "";
+            const desc = (item.pt && item.pt.term) ? item.pt.term : (item.fsn && item.fsn.term ? item.fsn.term : "");
+            return [code, desc];
+          }).filter(pair => pair[0]);
+          if (list.length === 0) {
+            displayDiagnosisNoResults(t, typeId);
+            return;
+          }
+          displayDiagnosisResults(list, typeId);
+        } else if (typeId === "loinc") {
+          const apiUrl = `${LOINC_URL}?terms=${encodeURIComponent(t)}&maxList=15`;
+          const res = await fetch(apiUrl, { signal: diagnosisSearchController.signal });
+          const data = await res.json();
+          loadingEl.style.display = "none";
+          const codes = Array.isArray(data[1]) ? data[1] : [];
+          const displays = Array.isArray(data[3]) ? data[3] : [];
+          const list = codes.map((code, i) => {
+            const desc = displays[i] != null ? (Array.isArray(displays[i]) ? (displays[i][0] != null ? String(displays[i][0]).trim() : "") : String(displays[i]).trim()) : "";
+            return [String(code).trim(), desc];
+          }).filter(pair => pair[0]);
+          if (list.length === 0) {
+            displayDiagnosisNoResults(t, typeId);
+            return;
+          }
+          displayDiagnosisResults(list, typeId);
+        } else {
+          const apiUrl = `${ICD10_SEARCH_API}?sf=code,name&terms=${encodeURIComponent(t)}&maxList=15`;
+          const res = await fetch(apiUrl, { signal: diagnosisSearchController.signal });
+          const data = await res.json();
+          loadingEl.style.display = "none";
+          const pairs = Array.isArray(data[3]) && data[3].length > 0 ? data[3] : null;
+          const list = pairs || (Array.isArray(data[1]) && data[1].length > 0 && Array.isArray(data[1][0]) ? data[1] : null);
+          if (!list || list.length === 0) {
+            displayDiagnosisNoResults(t, typeId);
+            return;
+          }
+          displayDiagnosisResults(list, typeId);
+        }
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        loadingEl.style.display = "none";
+        searchResults.innerHTML = `<div class="search-no-results"><div class="search-no-results-icon">❌</div><p>Error searching. Please try again.</p></div>`;
+        searchResults.style.display = "block";
+      }
+    }
+
+    function displayDiagnosisResults(list, typeId) {
+      const searchResults = document.getElementById("searchResults");
+      const count = list.length;
+      const typeEsc = escapeHtml(typeId === "snomed" ? "snomed" : typeId === "loinc" ? "loinc" : "icd");
+      let html = `<p class="search-results-count">Found ${count} result${count !== 1 ? "s" : ""}</p>`;
+      list.forEach(item => {
+        const code = Array.isArray(item) ? (item[0] != null ? String(item[0]).trim() : "") : "";
+        const desc = Array.isArray(item) && item[1] != null ? String(item[1]).trim() : "";
+        const codeEsc = escapeHtml(code);
+        const descEsc = escapeHtml(desc);
+        html += `<div class="diagnosis-result-item" role="option" data-code="${codeEsc}" data-description="${descEsc.replace(/"/g, "&quot;")}" data-typeid="${typeEsc}" tabindex="0">`;
+        html += `<div class="diagnosis-result-code">${codeEsc}</div>`;
+        html += `<div class="diagnosis-result-desc">${descEsc}</div></div>`;
+      });
+      searchResults.innerHTML = html;
+      searchResults.style.display = "block";
+      searchResults.querySelectorAll(".diagnosis-result-item").forEach(el => {
+        const tid = el.dataset.typeid || "icd";
+        el.addEventListener("click", () => selectSearchResult(el.dataset.code, el.dataset.description, tid));
+        el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectSearchResult(el.dataset.code, el.dataset.description, tid); } });
+      });
+    }
+
+    function displayDiagnosisNoResults(term, typeId) {
+      const searchResults = document.getElementById("searchResults");
+      const termEsc = escapeHtml(term);
+      const codeTypeName = typeId === "snomed" ? "SNOMED CT" : typeId === "loinc" ? "LOINC" : "ICD-10";
+      searchResults.innerHTML = `<div class="search-no-results"><div class="search-no-results-icon">🔍</div><p>No ${escapeHtml(codeTypeName)} codes found${term ? ` for "<strong>${termEsc}</strong>"` : ""}</p><p style="font-size:13px;margin-top:8px;">Try:</p><ul style="font-size:13px;color:var(--text-muted);text-align:left;margin-top:8px;"><li>Different spelling or terminology</li><li>More general terms (e.g., "diabetes" instead of "diabetic neuropathy")</li><li>Common medical terms or symptoms</li></ul></div>`;
+      searchResults.style.display = "block";
+    }
+
+    function selectSearchResult(code, description, typeId) {
+      document.getElementById("diagnosisNameInput").value = "";
+      document.getElementById("searchResults").style.display = "none";
+      document.getElementById("clearSearchBtn").style.display = "none";
+      const radio = document.getElementById("r_" + (typeId || "icd"));
+      const codeInput = document.getElementById("codeInput");
+      if (radio && codeInput) {
+        radio.checked = true;
+        radio.dispatchEvent(new Event("change", { bubbles: true }));
+        codeInput.value = code;
+        codeInput.focus();
+        document.getElementById("lookupBtn").click();
+        setTimeout(() => {
+          const resultContainer = document.getElementById("resultContainer");
+          if (resultContainer) resultContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+      }
+    }
+
+    function initializeDiagnosisSearch() {
+      const input = document.getElementById("diagnosisNameInput");
+      const clearBtn = document.getElementById("clearSearchBtn");
+      if (!input) return;
+      const debouncedSearch = debounce(searchByDiagnosisName, 300);
+      input.addEventListener("input", () => {
+        const v = input.value;
+        clearBtn.style.display = v.length > 0 ? "block" : "none";
+        debouncedSearch(v);
+      });
+      clearBtn.addEventListener("click", () => {
+        clearSearch();
+        input.focus();
+      });
+      bindExampleSearchButtons();
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          const v = input.value.trim();
+          if (v.length >= 2) searchByDiagnosisName(v);
+        }
+      });
+    }
+    initializeDiagnosisSearch();
 
     document.getElementById("lookupBtn").addEventListener("click", async () => {
       const selected = document.querySelector('input[name="codeType"]:checked');
