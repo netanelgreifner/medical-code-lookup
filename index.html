@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Code Lookup — ICD · SNOMED CT · LOINC · ATC · RxCUI · CPT · HCPCS · NDC</title>
+  <style>
+    :root {
+      --primary: #6B46E5;
+      --primary-hover: #5A3BC4;
+      --lavender: #E8E3FC;
+      --bg: #F9FAFB;
+      --white: #FFFFFF;
+      --text: #2D2654;
+      --text-muted: #6B7280;
+      --border: #E5E7EB;
+      --badge-teal-bg: #CCFBF1;
+      --badge-teal-fg: #0F766E;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 1rem;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 1rem 0 2rem;
+    }
+    .header {
+      background: linear-gradient(135deg, #6B46E5 0%, #8B5CF6 100%);
+      color: white;
+      padding: 1.5rem 1.75rem;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 14px rgba(107, 70, 229, 0.25);
+    }
+    .header h1 { margin: 0; font-size: 1.75rem; }
+    .header p { margin: 0.35rem 0 0 0; color: var(--lavender); font-size: 0.9rem; }
+    .section { margin-bottom: 1.5rem; }
+    .section label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem; }
+    .radio-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.25rem;
+    }
+    .radio-group input { display: none; }
+    .radio-group label {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      background: var(--lavender);
+      color: #4A31A8;
+      font-size: 0.9rem;
+      cursor: pointer;
+      margin: 0;
+      border: 2px solid transparent;
+    }
+    .radio-group input:checked + label {
+      background: var(--white);
+      color: var(--primary);
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(107, 70, 229, 0.2);
+    }
+    .input-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    .input-row input[type="text"] {
+      flex: 1;
+      min-width: 200px;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--white);
+    }
+    .input-row input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(107, 70, 229, 0.15);
+    }
+    .btn {
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: var(--primary);
+      color: white;
+    }
+    .btn:hover:not(:disabled) { background: var(--primary-hover); }
+    .btn:disabled { opacity: 0.7; cursor: not-allowed; }
+    .examples { margin-top: 0.75rem; }
+    .examples span { font-size: 0.85rem; color: var(--text-muted); margin-right: 0.5rem; }
+    .chip {
+      display: inline-block;
+      background: var(--lavender);
+      color: #4A31A8;
+      padding: 0.35rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      margin: 0.25rem 0.25rem 0 0;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+    }
+    .chip:hover { background: #D5CCF7; }
+    .result-card {
+      background: var(--white);
+      border-radius: 12px;
+      border-left: 4px solid var(--primary);
+      box-shadow: 0 4px 12px rgba(107, 70, 229, 0.1);
+      padding: 1.5rem 1.75rem;
+      margin: 1.5rem 0;
+    }
+    .result-card .display-name {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0 0 0.75rem 0;
+      line-height: 1.3;
+    }
+    .result-card .badges { margin-bottom: 0.75rem; }
+    .result-card .badge {
+      display: inline-block;
+      background: var(--lavender);
+      color: #4A31A8;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .result-card .badge-teal { background: var(--badge-teal-bg); color: var(--badge-teal-fg); }
+    .result-card .source-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #8B7AB8;
+      text-transform: uppercase;
+      margin: 1rem 0 0.25rem 0;
+    }
+    .result-card .source-value { color: #374151; font-size: 0.9rem; margin: 0; }
+    .message { padding: 1rem; border-radius: 8px; margin: 1rem 0; }
+    .message.error { background: #FEE2E2; color: #B91C1C; }
+    .message.success { background: #D1FAE5; color: #065F46; }
+    .spinner { display: inline-block; width: 1rem; height: 1rem; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 0.5rem; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .aside {
+      margin-top: 2rem;
+      padding: 1.25rem;
+      background: var(--white);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .aside h3 { margin: 0 0 0.5rem 0; font-size: 1rem; color: var(--text); }
+    .aside ul { margin: 0.5rem 0; padding-left: 1.25rem; }
+    .aside p { margin: 0.5rem 0; }
+    #resultContainer { min-height: 2rem; }
+    .info-banner {
+      margin-top: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: rgba(107, 70, 229, 0.06);
+      border-radius: 8px;
+      border-left: 3px solid var(--primary);
+      font-size: 0.8125rem;
+      line-height: 1.45;
+      color: var(--text-muted);
+      opacity: 1;
+      transition: opacity 0.25s ease;
+    }
+    .info-banner.fade-in { animation: infoBannerFade 0.3s ease; }
+    @keyframes infoBannerFade {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .conversion-section { margin-top: 24px; }
+    .conversion-divider { border: none; border-top: 1px solid #E8E3FC; margin: 0 0 16px 0; }
+    .conversion-heading {
+      text-align: center; font-size: 14px; color: #8B7AB8; text-transform: uppercase;
+      letter-spacing: 1px; margin: 0 0 16px 0; font-weight: 400;
+    }
+    .conversion-buttons {
+      display: flex; flex-wrap: wrap; gap: 16px; justify-content: center;
+    }
+    .conversion-buttons .chip { min-height: 44px; min-width: 44px; }
+    .conversion-result-card {
+      background: var(--white); border-radius: 12px; border-left: 4px solid var(--primary);
+      box-shadow: 0 4px 12px rgba(107, 70, 229, 0.1); padding: 1.5rem 1.75rem; margin-top: 16px;
+    }
+    .conversion-result-card .conv-title { font-size: 1rem; font-weight: 600; color: var(--text); margin: 0 0 0.75rem 0; }
+    .conversion-result-card .conv-original { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem; }
+    .conversion-result-card .conv-result { font-size: 0.95rem; margin: 0.75rem 0; }
+    .conversion-result-card .conv-list { list-style: none; padding: 0; margin: 0.5rem 0; }
+    .conversion-result-card .conv-list li {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+      gap: 0.5rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border);
+    }
+    .conversion-result-card .conv-list li:last-child { border-bottom: none; }
+    .conversion-result-card .conv-list li .conv-item-content { flex: 1; min-width: 0; }
+    .conversion-result-card .conv-item-code { font-size: 16px; font-weight: 700; color: #2D2654; margin: 0 0 4px 0; }
+    .conversion-result-card .conv-item-name { font-size: 14px; color: #6B7280; margin: 0 0 2px 0; }
+    .conversion-result-card .conv-item-context { font-size: 13px; font-style: italic; color: #9CA3AF; margin: 0; }
+    .conversion-result-card .conv-list li { align-items: flex-start; padding: 16px 0; }
+    .conversion-result-card .conv-actions { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.75rem; }
+    .conversion-result-card .btn-small {
+      padding: 0.5rem 1rem; font-size: 0.875rem; border-radius: 20px; border: none; cursor: pointer;
+      background: var(--lavender); color: #4A31A8; font-weight: 600; font-family: inherit;
+    }
+    .conversion-result-card .btn-small:hover { background: #D5CCF7; }
+    .conversion-empty { background: #FEF3C7; color: #92400E; padding: 1rem; border-radius: 8px; margin-top: 16px; font-size: 0.9rem; }
+    .conversion-error { background: #FEE2E2; color: #B91C1C; padding: 1rem; border-radius: 8px; margin-top: 16px; font-size: 0.9rem; }
+    .conversion-error .retry-btn { margin-top: 0.5rem; }
+    .copied-toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--text); color: white; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.875rem; z-index: 100; opacity: 0; transition: opacity 0.2s; }
+    .copied-toast.show { opacity: 1; animation: fadeToast 2s ease; }
+    @keyframes fadeToast { 0%, 20% { opacity: 1; } 100% { opacity: 0; } }
+    @media (max-width: 480px) { .conversion-buttons { flex-direction: column; } .conversion-buttons .chip { width: 100%; } }
+    .app-footer {
+      margin-top: 2rem;
+      padding: 20px 1rem;
+      width: 100%;
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.6;
+      font-weight: 400;
+      color: #8B7AB8;
+      background: #FAFAFE;
+      border-top: 1px solid #E8E3FC;
+    }
+    .app-footer .footer-title { font-size: 14px; margin-bottom: 4px; }
+    .app-footer .footer-credits { font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>🔍 Code Lookup</h1>
+      <p>ICD · SNOMED CT · LOINC · ATC · RxCUI · CPT · HCPCS · NDC — Official display names from trusted sources</p>
+    </header>
+
+    <div class="section">
+      <label>Code type</label>
+      <div class="radio-group" id="codeTypeChips" role="radiogroup" aria-label="Code type"></div>
+      <div class="info-banner" id="codeTypeDescription" aria-live="polite"></div>
+    </div>
+
+    <div class="section">
+      <label for="codeInput">Code</label>
+      <div class="input-row">
+        <input type="text" id="codeInput" placeholder="e.g. E11.9" autocomplete="off" aria-label="Code">
+        <button type="button" class="btn" id="lookupBtn">Lookup</button>
+      </div>
+      <div class="examples">
+        <span>Try:</span>
+        <span id="exampleChips"></span>
+      </div>
+    </div>
+
+    <div id="messageArea"></div>
+    <div id="resultContainer"></div>
+    <div id="copiedToast" class="copied-toast" aria-live="polite" role="status">Copied!</div>
+
+    <aside class="aside">
+      <h3>About</h3>
+      <p>Look up medical and drug codes and get their <strong>official display names</strong> from authoritative APIs.</p>
+      <h3>How to use</h3>
+      <p>1. Select a code type. 2. Enter a code. 3. Click Lookup.</p>
+      <h3>API sources</h3>
+      <ul>
+        <li><strong>ICD:</strong> NLM Clinical Tables (ICD-10-CM), WHO (ICD-11)</li>
+        <li><strong>SNOMED CT:</strong> Snowstorm</li>
+        <li><strong>LOINC:</strong> NLM Clinical Tables</li>
+        <li><strong>ATC / RxCUI:</strong> NLM RxNorm</li>
+        <li><strong>CPT / HCPCS:</strong> AAPC (aapc.com)</li>
+        <li><strong>NDC:</strong> NLM RxNav API</li>
+      </ul>
+      <p id="historySection" style="display:none;"><strong>Recent:</strong> <span id="historyList"></span></p>
+    </aside>
+  </div>
+
+  <footer class="app-footer">
+    <div class="footer-title">Medical Code Lookup Tool</div>
+    <div class="footer-credits">© 2026 Netanel Greifner, MD, MHA</div>
+  </footer>
+
+  <script>
+    const CODE_TYPES = [
+      { id: "icd", label: "ICD", description: "International Classification of Diseases. Used for diagnoses, billing, and statistics." },
+      { id: "snomed", label: "SNOMED CT", description: "Comprehensive clinical terminology used for detailed electronic health records." },
+      { id: "cpt", label: "CPT", description: "Current Procedural Terminology. Used for reporting medical procedures and services." },
+      { id: "hcpcs", label: "HCPCS", description: "Healthcare Common Procedure Coding System. Used for supplies, equipment, and services (Level II)." },
+      { id: "loinc", label: "LOINC", description: "Logical Observation Identifiers Names and Codes. Standard for lab results and clinical observations." },
+      { id: "ndc", label: "NDC", description: "National Drug Code. Identifies specific drug products (packaging, manufacturer)." },
+      { id: "rxcui", label: "RxCUI", description: "RxNorm Concept Unique Identifier. Standard for clinical drug ingredients and forms." },
+      { id: "atc", label: "ATC", description: "Anatomical Therapeutic Chemical. Classifies drugs by organ system and therapeutic properties." }
+    ];
+    const CODE_TYPE_TO_API = { icd: "ICD", snomed: "SNOMED", cpt: "CPT", hcpcs: "HCPCS", loinc: "LOINC", ndc: "NDC", rxcui: "RXCUI", atc: "ATC" };
+    const TTY_LABELS = {
+      BN: "Brand Name", IN: "Generic Name", SCD: "Clinical Drug",
+      SBD: "Branded Drug", GPCK: "Clinical Pack", BPCK: "Branded Pack",
+      PIN: "Precise Ingredient", MIN: "Multiple Ingredient",
+      SY: "Synonym", TMSY: "Tall Man Synonym", PSN: "Prescribable Name",
+      SCDC: "Clinical Drug Component", SBDC: "Branded Drug Component"
+    };
+    const EXAMPLES = {
+      ICD: ["E11.9", "I10", "J18.9"],
+      SNOMED: ["38341003", "73211009", "233604007"],
+      LOINC: ["2345-7", "6690-2", "2160-0"],
+      ATC: ["N02BE01", "C09AA01", "A02BC01"],
+      RXCUI: ["161", "8001", "1191"],
+      CPT: ["99213", "97110", "99397"],
+      HCPCS: ["A4244", "J0135", "E0118"],
+      NDC: ["00002-3105-02", "00003-2188-51", "00069-5420-66"]
+    };
+    const CORS_PROXY = "https://corsproxy.io/?";
+    const RXNAV_REST = "https://rxnav.nlm.nih.gov/REST";
+    const RXNAV_NDC_STATUS = "https://rxnav.nlm.nih.gov/REST/ndcstatus.json";
+    const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+    const NLM_ICD = "https://clinicaltables.nlm.nih.gov/api/icd10cm/v3/search";
+    const LOINC_URL = "https://clinicaltables.nlm.nih.gov/api/loinc_items/v3/search";
+    const WHO_BASE = "https://id.who.int/icd/release/11/2024-01";
+    const SNOMED_BASES = [
+      "https://snowstorm.snomedtools.org/snowstorm/snomed-ct",
+      "https://snowstorm-training.snomedtools.org/snowstorm/snomed-ct"
+    ];
+
+    let history = [];
+    let lastDrugResult = null;
+    try {
+      const s = localStorage.getItem("codeLookupHistory");
+      if (s) history = JSON.parse(s);
+    } catch (_) {}
+
+    function saveHistory() {
+      try { localStorage.setItem("codeLookupHistory", JSON.stringify(history.slice(-20))); } catch (_) {}
+    }
+
+    function addToHistory(codeType, code, displayName) {
+      history.push({ codeType, code, preview: (displayName || "").slice(0, 40) });
+      history = history.slice(-20);
+      saveHistory();
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const el = document.getElementById("historyList");
+      const section = document.getElementById("historySection");
+      if (!el || history.length === 0) {
+        if (section) section.style.display = "none";
+        return;
+      }
+      section.style.display = "block";
+      el.innerHTML = history.slice(-5).reverse().map(h =>
+        `<span style="margin-right:0.5rem;">${h.codeType} <strong>${h.code}</strong></span>`
+      ).join("");
+    }
+
+    function showMessage(text, type) {
+      const area = document.getElementById("messageArea");
+      area.innerHTML = `<div class="message ${type}">${text}</div>`;
+    }
+    function clearMessage() {
+      document.getElementById("messageArea").innerHTML = "";
+    }
+
+    function escapeHtml(s) {
+      if (!s) return "";
+      return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function buildConversionSection(codeType, displayName, codeValue) {
+      const buttons = [];
+      if (codeType === "RXCUI") {
+        buttons.push({ target: "ATC", label: "View ATC Code" });
+      } else if (codeType === "NDC") {
+        buttons.push({ target: "RXCUI", label: "View RxCUI" });
+      } else if (codeType === "ATC") {
+        buttons.push({ target: "RXCUI", label: "View RxCUI Codes" });
+      }
+      if (buttons.length === 0) return "";
+      const btnHtml = buttons.map(b => `<button type="button" class="chip conversion-btn" data-conversion-target="${escapeHtml(b.target)}">🔄 ${escapeHtml(b.label)}</button>`).join("");
+      return `
+        <div class="conversion-section">
+          <hr class="conversion-divider">
+          <p class="conversion-heading">Convert to</p>
+          <div class="conversion-buttons">${btnHtml}</div>
+          <div id="conversionResult"></div>
+        </div>`;
+    }
+
+    function renderResult(data, codeType, code) {
+      const name = escapeHtml(data.display_name || "—");
+      const codeLabel = escapeHtml(data.code_label || "Code");
+      const codeVal = escapeHtml(data.code_value || "—");
+      const source = escapeHtml(data.source || "—");
+      const category = data.category ? escapeHtml(data.category) : "";
+      const rxcui = data.rxcui ? escapeHtml(data.rxcui) : "";
+      const tty = data.term_type;
+      const ttyLabel = tty ? (TTY_LABELS[tty.toUpperCase()] || tty) : null;
+      const ttyBadge = ttyLabel ? `<span class="badge badge-teal">${escapeHtml(ttyLabel)}</span>` : "";
+      const categoryBlock = category ? `<p class="source-label">Category</p><p class="source-value">${category}</p>` : "";
+      const rxcuiBlock = rxcui ? `<p class="source-label">RxCUI</p><p class="source-value">${rxcui}</p>` : "";
+      const isDrug = codeType === "RXCUI" || codeType === "NDC" || codeType === "ATC";
+      if (isDrug) lastDrugResult = { data, codeType, code: code || data.code_value };
+      else lastDrugResult = null;
+      const conversionHtml = isDrug ? buildConversionSection(codeType, data.display_name, codeVal) : "";
+      document.getElementById("resultContainer").innerHTML = `
+        <div class="result-card">
+          <p class="display-name">${name}</p>
+          <div class="badges">
+            <span class="badge">${codeLabel}: ${codeVal}</span>${ttyBadge}
+          </div>
+          ${categoryBlock}
+          ${rxcuiBlock}
+          <p class="source-label">Source</p>
+          <p class="source-value">${source}</p>
+        </div>${conversionHtml}`;
+      if (isDrug) bindConversionButtons();
+    }
+
+    function setLoading(loading) {
+      const btn = document.getElementById("lookupBtn");
+      if (loading) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span> Looking up...';
+      } else {
+        btn.disabled = false;
+        btn.textContent = "Lookup";
+      }
+    }
+
+    async function fetchJson(url, opts = {}) {
+      try {
+        const res = await fetch(url, { ...opts, headers: { Accept: "application/json", ...(opts.headers || {}) } });
+        if (!res.ok) return null;
+        return await res.json();
+      } catch (_) {
+        return null;
+      }
+    }
+
+    async function fetchJsonWithProxy(url) {
+      let data = await fetchJson(url);
+      if (data !== null) return data;
+      try {
+        const proxyUrl = CORS_PROXY + encodeURIComponent(url);
+        const res = await fetch(proxyUrl, { headers: { Accept: "application/json" } });
+        if (!res.ok) return null;
+        return await res.json();
+      } catch (_) {
+        return null;
+      }
+    }
+
+    async function fetchSnomed(code) {
+      code = code.trim();
+      if (!code || !/^\d+$/.test(code)) return null;
+      for (const base of SNOMED_BASES) {
+        try {
+          const data = await fetchJson(`${base}/browser/MAIN/concepts/${code}`);
+          if (!data) continue;
+          const pt = data.pt || {};
+          const fsn = data.fsn || {};
+          const term = (pt.term || pt.value || fsn.term || fsn.value || "").trim();
+          return { display_name: term || "—", code_label: "SNOMED CT Code", code_value: code, source: "Snowstorm SNOMED CT API", term_type: null };
+        } catch (_) {}
+      }
+      return null;
+    }
+
+    async function fetchLoinc(code) {
+      code = code.trim().toUpperCase();
+      if (!code) return null;
+      try {
+        const url = `${LOINC_URL}?terms=${encodeURIComponent(code)}&count=100`;
+        const data = await fetchJson(url);
+        if (!Array.isArray(data) || data.length < 4) return null;
+        const codesList = data[1] || [];
+        const namesList = data[3] || [];
+        if (!codesList.length) return null;
+        const codeClean = code.replace(/\s/g, "").replace(/-/g, "");
+        for (let i = 0; i < codesList.length; i++) {
+          const c = String(codesList[i]).trim().toUpperCase();
+          const cClean = c.replace(/\s/g, "").replace(/-/g, "");
+          if (c === code || cClean === codeClean) {
+            let name = "";
+            if (i < namesList.length && namesList[i]) {
+              const part = namesList[i];
+              name = Array.isArray(part) && part[0] != null ? String(part[0]).trim() : String(part).trim();
+            }
+            return { display_name: name || "—", code_label: "LOINC Code", code_value: c, source: "NLM Clinical Tables API (LOINC)", term_type: null };
+          }
+        }
+        const c0 = String(codesList[0]).trim().toUpperCase();
+        if (code.includes(c0) || c0.startsWith(code) || codeClean.includes(c0.replace(/-/g, ""))) {
+          const part = namesList[0];
+          const name = Array.isArray(part) && part[0] != null ? String(part[0]).trim() : (part ? String(part).trim() : "—");
+          return { display_name: name || "—", code_label: "LOINC Code", code_value: c0, source: "NLM Clinical Tables API (LOINC)", term_type: null };
+        }
+      } catch (_) {}
+      return null;
+    }
+
+    async function fetchRxcui(code) {
+      code = code.trim();
+      if (!code || !/^\d+$/.test(code)) return null;
+      try {
+        const data = await fetchJson(`https://rxnav.nlm.nih.gov/REST/rxcui/${code}/properties.json`);
+        if (!data) return null;
+        const props = data.properties || data;
+        const name = props.name || props.synonym || "";
+        const tty = (props.tty || "").trim();
+        if (!name && !tty) return null;
+        return { display_name: name || "—", code_label: "RxCUI", code_value: code, source: "NLM RxNorm API (rxnav.nlm.nih.gov)", term_type: tty || null };
+      } catch (_) {}
+      return null;
+    }
+
+    async function fetchAtc(code) {
+      code = code.trim().toUpperCase().replace(/\s/g, "");
+      if (!code) return null;
+      try {
+        const data = await fetchJson(`https://rxnav.nlm.nih.gov/REST/rxcui.json?idtype=ATC&id=${encodeURIComponent(code)}`);
+        if (!data) return null;
+        const idGroup = data.idGroup || {};
+        let rxcuiList = idGroup.rxnormId || [];
+        if (typeof rxcuiList === "string") rxcuiList = [rxcuiList];
+        if (!rxcuiList.length) return null;
+        const first = rxcuiList[0];
+        const pData = await fetchJson(`https://rxnav.nlm.nih.gov/REST/rxcui/${first}/properties.json`);
+        let name = `(RxCUI ${first})`;
+        if (pData) {
+          const p = pData.properties || pData;
+          name = p.name || p.synonym || name;
+        }
+        let source = "NLM RxNorm API (ATC mapping)";
+        if (rxcuiList.length > 1) source += ` — maps to ${rxcuiList.length} RxNorm concept(s); showing first.`;
+        return { display_name: name, code_label: "ATC Code", code_value: code, source, term_type: null };
+      } catch (_) {}
+      return null;
+    }
+
+    async function fetchIcdNlm(code) {
+      try {
+        const url = `${NLM_ICD}?terms=${encodeURIComponent(code)}&count=100`;
+        const data = await fetchJson(url);
+        if (!Array.isArray(data) || data.length < 4) return null;
+        const pairs = data[3] || [];
+        if (!pairs.length) return null;
+        const codeUpper = code.toUpperCase();
+        const codeNoDot = codeUpper.replace(/\./g, "");
+        for (const pair of pairs) {
+          if (!Array.isArray(pair) || pair.length < 2) continue;
+          const cPart = String(pair[0]).trim();
+          const nPart = String(pair[1]).trim();
+          if (cPart.toUpperCase() === codeUpper || cPart.toUpperCase().replace(/\./g, "") === codeNoDot)
+            return { display_name: nPart, code_label: "ICD Code", code_value: cPart, source: "NLM Clinical Tables API (ICD-10-CM)", term_type: null };
+        }
+        const cPart = String(pairs[0][0]).trim();
+        const nPart = String(pairs[0][1]).trim();
+        const cPartNoDot = cPart.toUpperCase().replace(/\./g, "");
+        const codePre = codeNoDot.slice(0, 3);
+        const cPre = cPartNoDot.slice(0, 3);
+        if (cPartNoDot.indexOf(codePre) !== -1 || codeNoDot.indexOf(cPre) !== -1)
+          return { display_name: nPart, code_label: "ICD Code", code_value: cPart, source: "NLM Clinical Tables API (ICD-10-CM)", term_type: null };
+      } catch (_) {}
+      return null;
+    }
+
+    async function fetchIcdWho(code) {
+      const headers = { "Accept": "application/json", "Accept-Language": "en", "API-Version": "v2" };
+      for (const path of [`/mms/${code}`, `/mms/foundation/${code}`]) {
+        try {
+          const data = await fetchJson(WHO_BASE + path, { headers });
+          if (!data) continue;
+          let name = data.title;
+          if (typeof name === "object" && name && name["@value"]) name = name["@value"];
+          if (!name && data.fullySpecifiedName) {
+            const fsn = data.fullySpecifiedName;
+            name = typeof fsn === "object" && fsn && fsn["@value"] ? fsn["@value"] : (fsn ? String(fsn) : "—");
+          }
+          return { display_name: name || "—", code_label: "ICD Code", code_value: code, source: "WHO ICD API", term_type: null };
+        } catch (_) {}
+      }
+      return null;
+    }
+
+    async function fetchIcd(code) {
+      code = code.toUpperCase().replace(/\s/g, "").trim();
+      const nlm = await fetchIcdNlm(code);
+      if (nlm) return nlm;
+      return await fetchIcdWho(code);
+    }
+
+    /** Clean CPT description: remove "CPT Code 99397", "Codify by AAPC", and other metadata. */
+    function cleanCptDescription(text, code) {
+      if (!text || !text.trim()) return "";
+      let s = text.trim();
+      // Remove prefix: "CPT® Code 99397 - " or "CPT ® 99397, " or "CPT Code 99397 - "
+      s = s.replace(/^CPT\s*®?\s*Code\s*\d+\s*[-,:\s]+\s*/i, "");
+      s = s.replace(/^CPT\s*®\s*\d+\s*,\s*Under\s+/i, "");
+      // Remove suffix: " - Codify by AAPC" or ", Codify by AAPC"
+      s = s.replace(/\s*[-,]\s*Codify\s+by\s+AAPC\.?\s*$/i, "");
+      s = s.replace(/\s*-\s*Codify\s+by\s+AAPC\.?\s*$/i, "");
+      // Remove any remaining " - Codify..." at end
+      s = s.replace(/\s*-\s*[Cc]odify[^.]*\.?\s*$/i, "");
+      return s.trim();
+    }
+
+    async function fetchCpt(code) {
+      code = code.trim().replace(/\s/g, "");
+      if (!code || !/^\d{4,5}$/.test(code)) return null;
+      const url = `https://www.aapc.com/codes/cpt-codes/${code}`;
+      const proxyUrl = CORS_PROXY + encodeURIComponent(url);
+      try {
+        const res = await fetch(proxyUrl, {
+          headers: { "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "User-Agent": USER_AGENT }
+        });
+        if (res.status === 404) return null;
+        if (!res.ok) return null;
+        const html = await res.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        const titleEl = doc.querySelector("title");
+        const title = titleEl ? titleEl.textContent.trim() : "";
+        let description = "";
+        let category = "";
+        // Prefer title for clean structure: "CPT® Code 99397 - Preventive Medicine Services, Established Patient - Codify by AAPC"
+        if (title && title.includes(" - ")) {
+          const parts = title.split(" - ").map(p => p.trim()).filter(Boolean);
+          const codifyLast = parts.length > 0 && /Codify\s+by\s+AAPC/i.test(parts[parts.length - 1]);
+          const firstIsCode = parts.length > 0 && /^CPT\s*®?\s*Code\s*\d+/i.test(parts[0]);
+          if (codifyLast && firstIsCode && parts.length >= 2) {
+            // Middle part(s) = clinical description only
+            description = parts.slice(1, parts.length - 1).join(" - ");
+            if (parts.length >= 3) category = parts[1];
+          } else if (parts.length >= 2) {
+            description = parts[1];
+            category = parts[1];
+          }
+        }
+        if (title && /Under\s+/i.test(title) && !category) {
+          const underMatch = title.match(/Under\s+(.+?)(?:\s*-\s*|$)/i);
+          if (underMatch) category = underMatch[1].trim();
+        }
+        // Fallback: meta description, then clean it
+        if (!description) {
+          const metaDesc = doc.querySelector('meta[name="description"]') || doc.querySelector('meta[property="og:description"]');
+          if (metaDesc && metaDesc.getAttribute("content")) description = metaDesc.getAttribute("content").trim();
+        }
+        if (!description) {
+          const p = doc.querySelector("p");
+          if (p && p.textContent.trim().length > 30) description = p.textContent.trim().slice(0, 500);
+        }
+        description = cleanCptDescription(description, code);
+        if (!description && category) description = category;
+        if (!description) description = "See AAPC.com for full details.";
+        return {
+          display_name: description,
+          code_label: "CPT Code",
+          code_value: code,
+          source: "AAPC (aapc.com)",
+          term_type: null,
+          category: category ? cleanCptDescription(category, code) || category : null
+        };
+      } catch (_) {
+        return null;
+      }
+    }
+
+    /** Clean HCPCS description: remove "HCPCS Code A4244", "Codify by AAPC", code prefix/suffix. Same logic as CPT. */
+    function cleanHcpcsDescription(text, code) {
+      if (!text || !text.trim()) return "";
+      let s = text.trim();
+      const codeUpper = (code || "").toUpperCase();
+      // Remove prefix: "HCPCS Code for ", "HCPCS Code A4244 - ", "A4244 - "
+      s = s.replace(/^HCPCS\s*Code\s*for\s+/i, "");
+      s = s.replace(new RegExp(`^HCPCS\\s*Code\\s*${codeUpper}\\s*[-,:\\s]+\\s*`, "i"), "");
+      s = s.replace(/^HCPCS\s*Code\s*[A-Z]\d{4}\s*[-,:\s]+\s*/i, "");
+      s = s.replace(new RegExp(`^${codeUpper}\\s*[-–—:]\\s*`, "i"), "");
+      // Remove suffix: " A4244", " - HCPCS Codes", " - Codify by AAPC"
+      s = s.replace(new RegExp(`\\s+${codeUpper}\\s*$`, "i"), "");
+      s = s.replace(/\s*[-,]\s*HCPCS\s+Codes?\s*$/i, "");
+      s = s.replace(/\s*[-,]\s*Codify\s+by\s+AAPC\.?\s*$/i, "");
+      s = s.replace(/\s*-\s*[Cc]odify[^.]*\.?\s*$/i, "");
+      return s.trim();
+    }
+
+    async function fetchHcpcs(code) {
+      code = code.trim().replace(/\s/g, "").toUpperCase();
+      if (!code || !/^[A-Z]\d{4}$/.test(code)) return null;
+      const url = `https://www.aapc.com/codes/hcpcs-codes/${code}`;
+      const proxyUrl = CORS_PROXY + encodeURIComponent(url);
+      try {
+        const res = await fetch(proxyUrl, {
+          headers: { "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "User-Agent": USER_AGENT }
+        });
+        if (res.status === 404) return null;
+        if (!res.ok) return null;
+        const html = await res.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        let description = "";
+        let category = "";
+
+        // 1) Prefer "Official Long Descriptor" section: heading followed by the description text
+        const headings = doc.querySelectorAll("h1, h2, h3, h4");
+        for (const h of headings) {
+          if (/Official\s+Long\s+Descriptor/i.test(h.textContent || "")) {
+            let next = h.nextElementSibling;
+            while (next) {
+              const t = (next.textContent || "").trim();
+              if (t.length > 2 && t.length < 500 && !/Codify|Subscribe|Request a Demo/i.test(t)) {
+                description = t;
+                break;
+              }
+              next = next.nextElementSibling;
+            }
+            if (description) break;
+          }
+        }
+
+        // 2) Fallback: parse h1 "HCPCS Code for Alcohol or peroxide, per pint A4244"
+        if (!description) {
+          const h1 = doc.querySelector("h1");
+          const h1Text = h1 ? h1.textContent.trim() : "";
+          if (h1Text) {
+            description = cleanHcpcsDescription(h1Text, code);
+            if (!description) description = h1Text.replace(/^HCPCS\s*Code\s*for\s+/i, "").replace(new RegExp("\\s*" + code + "\\s*$", "i"), "").trim();
+          }
+        }
+
+        // 3) Category from h2: "HCPCS code A4244 for ... falls under Other Supplies..."
+        if (!category) {
+          const h2 = doc.querySelector("h2");
+          const h2Text = h2 ? h2.textContent.trim() : "";
+          const underMatch = h2Text.match(/falls?\s+under\s+(.+?)(?:\.|$)/i);
+          if (underMatch) category = underMatch[1].trim();
+        }
+
+        // 4) Last resort: title or meta
+        if (!description) {
+          const titleEl = doc.querySelector("title");
+          const title = titleEl ? titleEl.textContent.trim() : "";
+          if (title && title.includes(" - ")) {
+            const parts = title.split(" - ").map(p => p.trim()).filter(Boolean);
+            const codifyLast = parts.length > 0 && /Codify\s+by\s+AAPC/i.test(parts[parts.length - 1]);
+            if (parts.length >= 2 && !/^HCPCS\s+Codes?\s*$/i.test(parts[0])) {
+              description = codifyLast ? parts.slice(1, parts.length - 1).join(" - ") : parts[1];
+            }
+          }
+          if (!description) {
+            const metaDesc = doc.querySelector('meta[name="description"]') || doc.querySelector('meta[property="og:description"]');
+            if (metaDesc && metaDesc.getAttribute("content")) description = metaDesc.getAttribute("content").trim();
+          }
+        }
+
+        description = cleanHcpcsDescription(description, code);
+        if (!description && category) description = category;
+        if (!description) description = "See AAPC.com for full details.";
+        return {
+          display_name: description,
+          code_label: "HCPCS Code",
+          code_value: code,
+          source: "AAPC (aapc.com)",
+          term_type: null,
+          category: category ? cleanHcpcsDescription(category, code) || category : null
+        };
+      } catch (_) {
+        return null;
+      }
+    }
+
+    /** Normalize NDC: accept with or without dashes; display with dashes (5-4-2 or 4-4-2). */
+    function normalizeNdc(input) {
+      const digits = input.replace(/\D/g, "");
+      if (digits.length === 10) return { display: digits.replace(/^(\d{4})(\d{4})(\d{2})$/, "$1-$2-$3") };
+      if (digits.length === 11) return { display: digits.replace(/^(\d{5})(\d{4})(\d{2})$/, "$1-$2-$3") };
+      return { display: input.trim() };
+    }
+
+    async function fetchNdc(code) {
+      code = code.trim();
+      const normalized = normalizeNdc(code);
+      const digits = code.replace(/\D/g, "");
+      if (digits.length < 10) return null;
+      const ndcParam = normalized.display;
+      const url = `${RXNAV_NDC_STATUS}?caller=RxNav&ndc=${encodeURIComponent(ndcParam)}`;
+      try {
+        let data = await fetchJson(url);
+        if (!data) data = await fetchJsonWithProxy(url);
+        const ndcStatus = data && data.ndcStatus ? data.ndcStatus : null;
+        if (!ndcStatus || !ndcStatus.conceptName) return null;
+        const drugName = (ndcStatus.conceptName || "").trim();
+        const rxcui = ndcStatus.rxcui ? String(ndcStatus.rxcui) : null;
+        return {
+          display_name: drugName,
+          code_label: "NDC Code",
+          code_value: normalized.display,
+          source: "NLM RxNav API",
+          term_type: null,
+          rxcui: rxcui
+        };
+      } catch (_) {
+        return null;
+      }
+    }
+
+    async function fetchRxclassAtcDescription(atcCode) {
+      const url = `${RXNAV_REST}/rxclass/class/byId.json?classId=${encodeURIComponent(atcCode)}`;
+      let data = await fetchJson(url);
+      if (!data) data = await fetchJsonWithProxy(url);
+      if (!data) return null;
+      const list = data.rxclassMinConceptList;
+      const concepts = list && list.rxclassMinConcept;
+      const item = Array.isArray(concepts) && concepts[0] ? concepts[0] : (list && list.rxclassMinConceptItem);
+      const name = (item && item.className) != null ? String(item.className).trim() : null;
+      return name ? String(name).trim() : null;
+    }
+
+    async function getATCNamesForCodes(atcCodes) {
+      console.log("[RxCUI→ATC] Getting names for", atcCodes.length, "codes:", atcCodes);
+      const results = await Promise.all(atcCodes.map(async (code) => {
+        try {
+          console.log("[RxCUI→ATC] Looking up name for ATC:", code);
+          const name = await fetchRxclassAtcDescription(code);
+          const out = { code: String(code), name: name || "Name not available" };
+          console.log("[RxCUI→ATC] Name for", code, ":", out.name);
+          return out;
+        } catch (e) {
+          console.warn("[RxCUI→ATC] Error getting name for", code, e);
+          return { code: String(code), name: "Name not available" };
+        }
+      }));
+      return results;
+    }
+
+    async function fetchRxcuiToAtc(rxcui) {
+      console.log("[RxCUI→ATC] === Starting RxCUI to ATC conversion ===");
+      console.log("[RxCUI→ATC] Input RxCUI:", rxcui);
+
+      try {
+        const propUrl = `${RXNAV_REST}/rxcui/${rxcui}/property.json?propName=ATC`;
+        console.log("[RxCUI→ATC] Property API URL:", propUrl);
+
+        let data = await fetchJson(propUrl);
+        if (!data) {
+          console.log("[RxCUI→ATC] Direct fetch failed, trying CORS proxy...");
+          data = await fetchJsonWithProxy(propUrl);
+        }
+        if (!data) {
+          console.log("[RxCUI→ATC] No data from property API, trying RxClass byRxcui...");
+          const rxclassUrl = `${RXNAV_REST}/rxclass/class/byRxcui.json?rxcui=${encodeURIComponent(rxcui)}&relaSource=ATC`;
+          data = await fetchJson(rxclassUrl);
+          if (!data) data = await fetchJsonWithProxy(rxclassUrl);
+          if (!data) {
+            console.log("[RxCUI→ATC] No data from RxClass either");
+            return null;
+          }
+          console.log("[RxCUI→ATC] RxClass response:", JSON.stringify(data, null, 2));
+          const infoList = data.rxclassDrugInfoList;
+          if (!infoList || !infoList.rxclassDrugInfo) {
+            console.log("[RxCUI→ATC] RxClass: no rxclassDrugInfoList.rxclassDrugInfo");
+            return null;
+          }
+          const atcInfo = infoList.rxclassDrugInfo;
+          const atcArray = Array.isArray(atcInfo) ? atcInfo : (atcInfo ? [atcInfo] : []);
+          const atcList = atcArray
+            .map(item => {
+              const min = item && item.rxclassMinConceptItem;
+              const code = min && min.classId != null ? String(min.classId).trim() : null;
+              const name = min && min.className != null ? String(min.className).trim() : "Name not available";
+              return code ? { code, name } : null;
+            })
+            .filter(Boolean);
+          const level5 = atcList.filter(item => item.code.length === 7);
+          console.log("[RxCUI→ATC] RxClass Level 5 codes:", level5);
+          return level5.length > 0 ? level5 : null;
+        }
+
+        console.log("[RxCUI→ATC] Property API full response:", JSON.stringify(data, null, 2));
+        console.log("[RxCUI→ATC] Has propConceptGroup?", !!data.propConceptGroup);
+
+        const group = data.propConceptGroup;
+        if (!group) {
+          console.log("[RxCUI→ATC] No propConceptGroup, trying RxClass fallback...");
+          const rxclassUrl = `${RXNAV_REST}/rxclass/class/byRxcui.json?rxcui=${encodeURIComponent(rxcui)}&relaSource=ATC`;
+          data = await fetchJson(rxclassUrl) || await fetchJsonWithProxy(rxclassUrl);
+          if (data && data.rxclassDrugInfoList && data.rxclassDrugInfoList.rxclassDrugInfo) {
+            const atcArray = Array.isArray(data.rxclassDrugInfoList.rxclassDrugInfo) ? data.rxclassDrugInfoList.rxclassDrugInfo : [data.rxclassDrugInfoList.rxclassDrugInfo];
+            const atcList = atcArray.map(item => {
+              const min = item && item.rxclassMinConceptItem;
+              const code = min && min.classId != null ? String(min.classId).trim() : null;
+              const name = min && min.className != null ? String(min.className).trim() : "Name not available";
+              return code ? { code, name } : null;
+            }).filter(Boolean);
+            const level5 = atcList.filter(item => item.code.length === 7);
+            return level5.length > 0 ? level5 : null;
+          }
+          return null;
+        }
+
+        const propConcept = group.propConcept;
+        console.log("[RxCUI→ATC] Has propConcept?", !!propConcept, "type:", Array.isArray(propConcept) ? "ARRAY" : typeof propConcept);
+
+        let atcCodes = [];
+        if (Array.isArray(propConcept)) {
+          console.log("[RxCUI→ATC] propConcept length:", propConcept.length);
+          atcCodes = propConcept.map((item, i) => {
+            const val = item && item.propValue;
+            console.log("[RxCUI→ATC] propConcept[" + i + "].propValue:", val);
+            return val != null ? String(val).trim() : null;
+          }).filter(Boolean);
+        } else if (propConcept && (propConcept.propValue != null || propConcept.propValue === "")) {
+          console.log("[RxCUI→ATC] Single propConcept.propValue:", propConcept.propValue);
+          atcCodes = [String(propConcept.propValue).trim()];
+        }
+        console.log("[RxCUI→ATC] Extracted ATC codes (before Level 5 filter):", atcCodes);
+
+        const level5Codes = atcCodes.filter(c => c.length === 7);
+        console.log("[RxCUI→ATC] Level 5 only (7 chars):", level5Codes);
+        if (level5Codes.length === 0) {
+          if (atcCodes.length > 0) console.log("[RxCUI→ATC] Only non-Level-5 codes from property API, skipping:", atcCodes);
+          console.log("[RxCUI→ATC] No Level 5 ATC codes to display");
+          return null;
+        }
+        atcCodes = level5Codes;
+
+        const atcWithNames = await getATCNamesForCodes(atcCodes);
+        console.log("[RxCUI→ATC] === Conversion complete ===", atcWithNames);
+        return atcWithNames;
+      } catch (e) {
+        console.error("[RxCUI→ATC] Error:", e);
+        throw e;
+      }
+    }
+
+    async function fetchRxcuiName(rxcui) {
+      const url = `${RXNAV_REST}/rxcui/${rxcui}/properties.json`;
+      let data = await fetchJson(url);
+      if (!data) data = await fetchJsonWithProxy(url);
+      if (!data) return null;
+      const props = data.properties || data;
+      const name = props.name || props.synonym || null;
+      return name ? String(name).trim() : null;
+    }
+
+    async function fetchNdcToRxcui(ndc) {
+      const normalized = normalizeNdc(ndc);
+      const url = `${RXNAV_NDC_STATUS}?caller=RxNav&ndc=${encodeURIComponent(normalized.display)}`;
+      let data = await fetchJson(url);
+      if (!data) data = await fetchJsonWithProxy(url);
+      if (!data) return null;
+      const ndcStatus = data.ndcStatus;
+      if (!ndcStatus || ndcStatus.rxcui == null) return null;
+      return String(ndcStatus.rxcui);
+    }
+
+    async function fetchAtcToRxcui(atc) {
+      const url = `${RXNAV_REST}/rxcui.json?idtype=ATC&id=${encodeURIComponent(atc)}`;
+      let data = await fetchJson(url);
+      if (!data) data = await fetchJsonWithProxy(url);
+      if (!data) return null;
+      const idGroup = data.idGroup || {};
+      let rxnormIds = idGroup.rxnormId;
+      if (rxnormIds == null) return [];
+      return Array.isArray(rxnormIds) ? rxnormIds.map(String) : [String(rxnormIds)];
+    }
+
+    function showCopiedToast(message) {
+      const el = document.getElementById("copiedToast");
+      if (!el) return;
+      el.textContent = message || "Copied!";
+      el.classList.remove("show");
+      void el.offsetWidth;
+      el.classList.add("show");
+      clearTimeout(window._copyToastTimer);
+      window._copyToastTimer = setTimeout(() => el.classList.remove("show"), 2000);
+    }
+
+    function renderConversionResult(originalData, targetType, results, targetLabel) {
+      const container = document.getElementById("conversionResult");
+      if (!container) return;
+      const origLabel = originalData.code_label || "Code";
+      const origVal = escapeHtml(originalData.code_value || "—");
+      const origName = escapeHtml(originalData.display_name || "—");
+      const items = Array.isArray(results) ? results : [results];
+      const normalized = items.map(r => typeof r === "object" && r && (r.code != null || r.code === "")
+        ? { code: String(r.code), name: r.name != null ? String(r.name) : "" }
+        : { code: String(r), name: "" });
+      const isMultiple = normalized.length > 1;
+      let body = "";
+      if (isMultiple) {
+        const listItems = normalized.map(item => `
+          <li>
+            <div class="conv-item-content">
+              <p class="conv-item-code">• ${escapeHtml(item.code)}</p>
+              ${item.name ? `<p class="conv-item-name">${escapeHtml(item.name)}</p>` : ""}
+            </div>
+            <button type="button" class="btn-small conversion-copy" data-copy="${escapeHtml(item.code)}">📋 Copy</button>
+          </li>`).join("");
+        const allCodes = normalized.map(i => i.code).join(", ");
+        const copyAllCount = normalized.length;
+        body = `
+          <p class="conv-result">➜ ${escapeHtml(targetLabel)}:</p>
+          <ul class="conv-list">${listItems}</ul>
+          <div class="conv-actions">
+            <button type="button" class="btn-small conversion-copy-all" data-copy="${escapeHtml(allCodes)}" data-count="${copyAllCount}">📋 Copy All Codes</button>
+            <button type="button" class="btn-small conversion-back">← Back</button>
+          </div>`;
+      } else {
+        const single = normalized[0];
+        body = `
+          <p class="conv-result">➜ ${escapeHtml(targetLabel)}: ${escapeHtml(single.code)}</p>
+          ${single.name ? `<p class="conv-item-name">${escapeHtml(single.name)}</p>` : ""}
+          <div class="conv-actions">
+            <button type="button" class="btn-small conversion-copy" data-copy="${escapeHtml(single.code)}">📋 Copy</button>
+            <button type="button" class="btn-small conversion-back">← Back</button>
+          </div>`;
+      }
+      container.innerHTML = `
+        <div class="conversion-result-card">
+          <p class="conv-title">🔄 Conversion ${isMultiple ? "Results" : "Result"}</p>
+          <p class="conv-original">Original: ${origLabel} ${origVal}</p>
+          <p class="conv-original">${origName}</p>
+          ${body}
+        </div>`;
+      container.querySelectorAll(".conversion-copy").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const copyVal = btn.getAttribute("data-copy");
+          if (copyVal) navigator.clipboard.writeText(copyVal).then(() => showCopiedToast("Copied!"));
+        });
+      });
+      const copyAllBtn = container.querySelector(".conversion-copy-all");
+      if (copyAllBtn) {
+        copyAllBtn.addEventListener("click", () => {
+          const copyVal = copyAllBtn.getAttribute("data-copy");
+          const count = copyAllBtn.getAttribute("data-count");
+          if (copyVal) navigator.clipboard.writeText(copyVal).then(() => showCopiedToast(count ? "Copied " + count + " codes!" : "Copied!"));
+        });
+      }
+      container.querySelector(".conversion-back").addEventListener("click", () => {
+        container.innerHTML = "";
+        if (lastDrugResult) renderResult(lastDrugResult.data, lastDrugResult.codeType, lastDrugResult.code);
+      });
+    }
+
+    function showConversionError(message, retryFn) {
+      const container = document.getElementById("conversionResult");
+      if (!container) return;
+      container.innerHTML = `<div class="conversion-error">❌ ${escapeHtml(message)}${retryFn ? `<br><button type="button" class="chip retry-btn conversion-retry">🔄 Retry</button>` : ""}</div>`;
+      const retryBtn = container.querySelector(".conversion-retry");
+      if (retryBtn && retryFn) retryBtn.addEventListener("click", retryFn);
+    }
+
+    function showConversionEmpty(customMessage) {
+      const container = document.getElementById("conversionResult");
+      if (!container) return;
+      const msg = customMessage || "No conversion available for this code.";
+      container.innerHTML = `<div class="conversion-empty">⚠️ ${escapeHtml(msg)}</div>`;
+    }
+
+    function bindConversionButtons() {
+      const section = document.getElementById("resultContainer");
+      if (!section) return;
+      section.querySelectorAll(".conversion-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          if (!lastDrugResult) return;
+          const target = btn.getAttribute("data-conversion-target");
+          const { data, codeType, code } = lastDrugResult;
+          const origCode = (data.code_value || code || "").toString().trim();
+          const rxcui = codeType === "RXCUI" ? origCode : (data.rxcui || "");
+          const ndc = codeType === "NDC" ? origCode : null;
+          const atc = codeType === "ATC" ? (data.code_value || code || "").toString().trim() : null;
+          btn.disabled = true;
+          const origHtml = btn.innerHTML;
+          const loadingText = target === "ATC" ? "Converting RxCUI to ATC codes..." : "Converting...";
+          btn.innerHTML = "<span class=\"spinner\" style=\"border-width:2px;width:0.75rem;height:0.75rem;\"></span> " + loadingText;
+          const convResult = document.getElementById("conversionResult");
+          if (convResult) convResult.innerHTML = "";
+          try {
+            if (target === "ATC" && rxcui) {
+              const atcWithDesc = await fetchRxcuiToAtc(rxcui);
+              if (atcWithDesc && atcWithDesc.length > 0) renderConversionResult(data, "ATC", atcWithDesc, atcWithDesc.length === 1 ? "ATC Code (Level 5)" : "ATC Codes (Level 5)");
+              else showConversionEmpty("Only general ATC classification available (no specific Level 5 codes).");
+            } else if (target === "RXCUI" && ndc) {
+              const rxcuiVal = await fetchNdcToRxcui(ndc);
+              if (rxcuiVal) {
+                btn.innerHTML = "<span class=\"spinner\" style=\"border-width:2px;width:0.75rem;height:0.75rem;\"></span> Fetching details...";
+                const name = await fetchRxcuiName(rxcuiVal).catch(() => null);
+                renderConversionResult(data, "RXCUI", [{ code: rxcuiVal, name: name || "Name not available" }], "RxCUI");
+              } else showConversionEmpty();
+            } else if (target === "RXCUI" && atc) {
+              const rxcuiList = await fetchAtcToRxcui(atc);
+              if (rxcuiList && rxcuiList.length > 0) {
+                btn.innerHTML = "<span class=\"spinner\" style=\"border-width:2px;width:0.75rem;height:0.75rem;\"></span> Fetching details...";
+                const withNames = await Promise.all(rxcuiList.map(async (rxcuiId) => {
+                  const name = await fetchRxcuiName(rxcuiId).catch(() => null);
+                  return { code: rxcuiId, name: name || "Name not available" };
+                }));
+                renderConversionResult(data, "RXCUI", withNames, "RxCUI Codes");
+              } else showConversionEmpty();
+            } else {
+              showConversionEmpty();
+            }
+          } catch (e) {
+            const errMsg = target === "ATC" ? "Error fetching ATC codes. Please try again." : "Error connecting to conversion service.";
+            showConversionError(errMsg, () => {
+              convResult.innerHTML = "";
+              btn.dispatchEvent(new Event("click"));
+            });
+          } finally {
+            btn.disabled = false;
+            btn.innerHTML = origHtml;
+          }
+        });
+      });
+    }
+
+    async function lookup(codeType, code) {
+      if (codeType === "SNOMED") return await fetchSnomed(code);
+      if (codeType === "LOINC") return await fetchLoinc(code);
+      if (codeType === "RXCUI") return await fetchRxcui(code);
+      if (codeType === "ATC") return await fetchAtc(code);
+      if (codeType === "CPT") return await fetchCpt(code);
+      if (codeType === "HCPCS") return await fetchHcpcs(code);
+      if (codeType === "NDC") return await fetchNdc(code);
+      return await fetchIcd(code);
+    }
+
+    function renderCodeTypeChips() {
+      const container = document.getElementById("codeTypeChips");
+      const descEl = document.getElementById("codeTypeDescription");
+      if (!container) return;
+      container.innerHTML = CODE_TYPES.map((t, i) => `
+        <input type="radio" name="codeType" id="r_${t.id}" value="${escapeHtml(t.id)}" ${i === 0 ? "checked" : ""}>
+        <label for="r_${t.id}">${escapeHtml(t.label)}</label>
+      `).join("");
+      function updateDescription() {
+        const selected = document.querySelector('input[name="codeType"]:checked');
+        const id = selected ? selected.value : CODE_TYPES[0].id;
+        const item = CODE_TYPES.find(t => t.id === id) || CODE_TYPES[0];
+        if (descEl) {
+          descEl.textContent = item.description;
+          descEl.classList.remove("fade-in");
+          void descEl.offsetWidth;
+          descEl.classList.add("fade-in");
+        }
+      }
+      updateDescription();
+      container.querySelectorAll('input[name="codeType"]').forEach(r => {
+        r.addEventListener("change", () => {
+          updateDescription();
+          updateExamples();
+          clearMessage();
+          document.getElementById("resultContainer").innerHTML = "";
+        });
+      });
+    }
+
+    function updateExamples() {
+      const selected = document.querySelector('input[name="codeType"]:checked');
+      const typeId = selected ? selected.value : "icd";
+      const apiKey = CODE_TYPE_TO_API[typeId];
+      const list = apiKey ? (EXAMPLES[apiKey] || []) : [];
+      const input = document.getElementById("codeInput");
+      const container = document.getElementById("exampleChips");
+      container.innerHTML = list.map(c =>
+        `<button type="button" class="chip" data-code="${c.replace(/"/g, "&quot;")}">${c.replace(/</g, "&lt;")}</button>`
+      ).join("");
+      container.querySelectorAll(".chip").forEach(btn => {
+        btn.addEventListener("click", () => {
+          input.value = btn.dataset.code;
+          input.focus();
+          document.getElementById("lookupBtn").click();
+        });
+      });
+      input.placeholder = list[0] ? `e.g. ${list[0]}` : "Enter code";
+    }
+
+    renderCodeTypeChips();
+    updateExamples();
+    renderHistory();
+
+    document.getElementById("lookupBtn").addEventListener("click", async () => {
+      const selected = document.querySelector('input[name="codeType"]:checked');
+      const typeId = selected ? selected.value : "icd";
+      const apiKey = CODE_TYPE_TO_API[typeId];
+      let code = document.getElementById("codeInput").value.trim();
+      const typeLabel = (CODE_TYPES.find(t => t.id === typeId) || {}).label || typeId;
+      clearMessage();
+      document.getElementById("resultContainer").innerHTML = "";
+      if (!code) {
+        showMessage("Please enter a code.", "error");
+        return;
+      }
+      if (apiKey === "HCPCS") {
+        code = code.replace(/\s/g, "").toUpperCase();
+        if (!/^[A-Z]\d{4}$/.test(code)) {
+          showMessage("Invalid HCPCS format. Use one letter followed by 4 digits (e.g. A4244, J0135, E0118).", "error");
+          return;
+        }
+        document.getElementById("codeInput").value = code;
+      }
+      setLoading(true);
+      try {
+        const result = await lookup(apiKey, code);
+        if (result) {
+          showMessage("Found.", "success");
+          renderResult(result, apiKey, code);
+          addToHistory(typeLabel, code, result.display_name);
+        } else {
+          showMessage(`Could not find ${typeLabel} code: ${code}. Check the code and try again.`, "error");
+        }
+      } catch (e) {
+        showMessage("Network or CORS error. Try running the page from a local server (e.g. <code>python -m http.server</code>) or check your connection.", "error");
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    document.getElementById("codeInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") document.getElementById("lookupBtn").click();
+    });
+  </script>
+</body>
+</html>
