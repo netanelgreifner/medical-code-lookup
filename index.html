@@ -405,6 +405,7 @@
       NDC: ["00002-3105-02", "00003-2188-51", "00069-5420-66"]
     };
     const CORS_PROXY = "https://corsproxy.io/?";
+    const CORS_PROXY_ALT = "https://api.allorigins.win/raw?url=";
     const RXNAV_REST = "https://rxnav.nlm.nih.gov/REST";
     const RXNAV_NDC_STATUS = "https://rxnav.nlm.nih.gov/REST/ndcstatus.json";
     const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
@@ -544,12 +545,39 @@
       }
     }
 
+    async function fetchJsonExternal(url, opts = {}) {
+      let data = await fetchJson(url, opts);
+      if (data != null) return data;
+      return await fetchJsonWithProxy(url);
+    }
+
+    async function fetchHtmlWithProxy(url) {
+      const headers = { "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "User-Agent": USER_AGENT };
+      try {
+        const proxyUrl1 = CORS_PROXY + encodeURIComponent(url);
+        const res1 = await fetch(proxyUrl1, { headers });
+        if (res1.ok) {
+          const html = await res1.text();
+          if (html && html.length > 200 && (html.includes("AAPC") || html.includes("aapc") || html.includes("CPT") || html.includes("HCPCS") || html.includes("codify"))) return html;
+        }
+      } catch (_) {}
+      try {
+        const proxyUrl2 = CORS_PROXY_ALT + encodeURIComponent(url);
+        const res2 = await fetch(proxyUrl2, { headers });
+        if (res2.ok) {
+          const html = await res2.text();
+          if (html && html.length > 200) return html;
+        }
+      } catch (_) {}
+      return null;
+    }
+
     async function fetchSnomed(code) {
       code = code.trim();
       if (!code || !/^\d+$/.test(code)) return null;
       for (const base of SNOMED_BASES) {
         try {
-          const data = await fetchJson(`${base}/browser/MAIN/concepts/${code}`);
+          const data = await fetchJsonExternal(`${base}/browser/MAIN/concepts/${code}`);
           if (!data) continue;
           const pt = data.pt || {};
           const fsn = data.fsn || {};
@@ -565,7 +593,7 @@
       if (!code) return null;
       try {
         const url = `${LOINC_URL}?terms=${encodeURIComponent(code)}&count=100`;
-        const data = await fetchJson(url);
+        const data = await fetchJsonExternal(url);
         if (!Array.isArray(data) || data.length < 4) return null;
         const codesList = data[1] || [];
         const namesList = data[3] || [];
@@ -597,7 +625,7 @@
       code = code.trim();
       if (!code || !/^\d+$/.test(code)) return null;
       try {
-        const data = await fetchJson(`https://rxnav.nlm.nih.gov/REST/rxcui/${code}/properties.json`);
+        const data = await fetchJsonExternal(`https://rxnav.nlm.nih.gov/REST/rxcui/${code}/properties.json`);
         if (!data) return null;
         const props = data.properties || data;
         const name = props.name || props.synonym || "";
@@ -612,14 +640,14 @@
       code = code.trim().toUpperCase().replace(/\s/g, "");
       if (!code) return null;
       try {
-        const data = await fetchJson(`https://rxnav.nlm.nih.gov/REST/rxcui.json?idtype=ATC&id=${encodeURIComponent(code)}`);
+        const data = await fetchJsonExternal(`https://rxnav.nlm.nih.gov/REST/rxcui.json?idtype=ATC&id=${encodeURIComponent(code)}`);
         if (!data) return null;
         const idGroup = data.idGroup || {};
         let rxcuiList = idGroup.rxnormId || [];
         if (typeof rxcuiList === "string") rxcuiList = [rxcuiList];
         if (!rxcuiList.length) return null;
         const first = rxcuiList[0];
-        const pData = await fetchJson(`https://rxnav.nlm.nih.gov/REST/rxcui/${first}/properties.json`);
+        const pData = await fetchJsonExternal(`https://rxnav.nlm.nih.gov/REST/rxcui/${first}/properties.json`);
         let name = `(RxCUI ${first})`;
         if (pData) {
           const p = pData.properties || pData;
@@ -635,7 +663,7 @@
     async function fetchIcdNlm(code) {
       try {
         const url = `${NLM_ICD}?terms=${encodeURIComponent(code)}&count=100`;
-        const data = await fetchJson(url);
+        const data = await fetchJsonExternal(url);
         if (!Array.isArray(data) || data.length < 4) return null;
         const pairs = data[3] || [];
         if (!pairs.length) return null;
@@ -663,7 +691,7 @@
       const headers = { "Accept": "application/json", "Accept-Language": "en", "API-Version": "v2" };
       for (const path of [`/mms/${code}`, `/mms/foundation/${code}`]) {
         try {
-          const data = await fetchJson(WHO_BASE + path, { headers });
+          const data = await fetchJsonExternal(WHO_BASE + path, { headers });
           if (!data) continue;
           let name = data.title;
           if (typeof name === "object" && name && name["@value"]) name = name["@value"];
@@ -703,14 +731,9 @@
       code = code.trim().replace(/\s/g, "");
       if (!code || !/^\d{4,5}$/.test(code)) return null;
       const url = `https://www.aapc.com/codes/cpt-codes/${code}`;
-      const proxyUrl = CORS_PROXY + encodeURIComponent(url);
       try {
-        const res = await fetch(proxyUrl, {
-          headers: { "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "User-Agent": USER_AGENT }
-        });
-        if (res.status === 404) return null;
-        if (!res.ok) return null;
-        const html = await res.text();
+        const html = await fetchHtmlWithProxy(url);
+        if (!html) return null;
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
         const titleEl = doc.querySelector("title");
@@ -782,14 +805,9 @@
       code = code.trim().replace(/\s/g, "").toUpperCase();
       if (!code || !/^[A-Z]\d{4}$/.test(code)) return null;
       const url = `https://www.aapc.com/codes/hcpcs-codes/${code}`;
-      const proxyUrl = CORS_PROXY + encodeURIComponent(url);
       try {
-        const res = await fetch(proxyUrl, {
-          headers: { "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "User-Agent": USER_AGENT }
-        });
-        if (res.status === 404) return null;
-        if (!res.ok) return null;
-        const html = await res.text();
+        const html = await fetchHtmlWithProxy(url);
+        if (!html) return null;
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
         let description = "";
@@ -879,8 +897,7 @@
       const ndcParam = normalized.display;
       const url = `${RXNAV_NDC_STATUS}?caller=RxNav&ndc=${encodeURIComponent(ndcParam)}`;
       try {
-        let data = await fetchJson(url);
-        if (!data) data = await fetchJsonWithProxy(url);
+      let data = await fetchJsonExternal(url);
         const ndcStatus = data && data.ndcStatus ? data.ndcStatus : null;
         if (!ndcStatus || !ndcStatus.conceptName) return null;
         const drugName = (ndcStatus.conceptName || "").trim();
@@ -900,8 +917,7 @@
 
     async function fetchRxclassAtcDescription(atcCode) {
       const url = `${RXNAV_REST}/rxclass/class/byId.json?classId=${encodeURIComponent(atcCode)}`;
-      let data = await fetchJson(url);
-      if (!data) data = await fetchJsonWithProxy(url);
+      let data = await fetchJsonExternal(url);
       if (!data) return null;
       const list = data.rxclassMinConceptList;
       const concepts = list && list.rxclassMinConcept;
@@ -935,16 +951,11 @@
         const propUrl = `${RXNAV_REST}/rxcui/${rxcui}/property.json?propName=ATC`;
         console.log("[RxCUI→ATC] Property API URL:", propUrl);
 
-        let data = await fetchJson(propUrl);
-        if (!data) {
-          console.log("[RxCUI→ATC] Direct fetch failed, trying CORS proxy...");
-          data = await fetchJsonWithProxy(propUrl);
-        }
+        let data = await fetchJsonExternal(propUrl);
         if (!data) {
           console.log("[RxCUI→ATC] No data from property API, trying RxClass byRxcui...");
           const rxclassUrl = `${RXNAV_REST}/rxclass/class/byRxcui.json?rxcui=${encodeURIComponent(rxcui)}&relaSource=ATC`;
-          data = await fetchJson(rxclassUrl);
-          if (!data) data = await fetchJsonWithProxy(rxclassUrl);
+          data = await fetchJsonExternal(rxclassUrl);
           if (!data) {
             console.log("[RxCUI→ATC] No data from RxClass either");
             return null;
@@ -977,7 +988,7 @@
         if (!group) {
           console.log("[RxCUI→ATC] No propConceptGroup, trying RxClass fallback...");
           const rxclassUrl = `${RXNAV_REST}/rxclass/class/byRxcui.json?rxcui=${encodeURIComponent(rxcui)}&relaSource=ATC`;
-          data = await fetchJson(rxclassUrl) || await fetchJsonWithProxy(rxclassUrl);
+          data = await fetchJsonExternal(rxclassUrl);
           if (data && data.rxclassDrugInfoList && data.rxclassDrugInfoList.rxclassDrugInfo) {
             const atcArray = Array.isArray(data.rxclassDrugInfoList.rxclassDrugInfo) ? data.rxclassDrugInfoList.rxclassDrugInfo : [data.rxclassDrugInfoList.rxclassDrugInfo];
             const atcList = atcArray.map(item => {
@@ -1029,8 +1040,7 @@
 
     async function fetchRxcuiName(rxcui) {
       const url = `${RXNAV_REST}/rxcui/${rxcui}/properties.json`;
-      let data = await fetchJson(url);
-      if (!data) data = await fetchJsonWithProxy(url);
+      let data = await fetchJsonExternal(url);
       if (!data) return null;
       const props = data.properties || data;
       const name = props.name || props.synonym || null;
@@ -1040,8 +1050,7 @@
     async function fetchNdcToRxcui(ndc) {
       const normalized = normalizeNdc(ndc);
       const url = `${RXNAV_NDC_STATUS}?caller=RxNav&ndc=${encodeURIComponent(normalized.display)}`;
-      let data = await fetchJson(url);
-      if (!data) data = await fetchJsonWithProxy(url);
+      let data = await fetchJsonExternal(url);
       if (!data) return null;
       const ndcStatus = data.ndcStatus;
       if (!ndcStatus || ndcStatus.rxcui == null) return null;
@@ -1050,8 +1059,7 @@
 
     async function fetchAtcToRxcui(atc) {
       const url = `${RXNAV_REST}/rxcui.json?idtype=ATC&id=${encodeURIComponent(atc)}`;
-      let data = await fetchJson(url);
-      if (!data) data = await fetchJsonWithProxy(url);
+      let data = await fetchJsonExternal(url);
       if (!data) return null;
       const idGroup = data.idGroup || {};
       let rxnormIds = idGroup.rxnormId;
@@ -1413,11 +1421,11 @@
           displayDiagnosisResults(list, typeId);
         } else if (typeId === "loinc") {
           const apiUrl = `${LOINC_URL}?terms=${encodeURIComponent(t)}&maxList=15`;
-          const res = await fetch(apiUrl, { signal: diagnosisSearchController.signal });
-          const data = await res.json();
+          let data = await fetchJson(apiUrl, { signal: diagnosisSearchController.signal });
+          if (!data) data = await fetchJsonWithProxy(apiUrl);
           loadingEl.style.display = "none";
-          const codes = Array.isArray(data[1]) ? data[1] : [];
-          const displays = Array.isArray(data[3]) ? data[3] : [];
+          const codes = Array.isArray(data && data[1]) ? data[1] : [];
+          const displays = Array.isArray(data && data[3]) ? data[3] : [];
           const list = codes.map((code, i) => {
             const desc = displays[i] != null ? (Array.isArray(displays[i]) ? (displays[i][0] != null ? String(displays[i][0]).trim() : "") : String(displays[i]).trim()) : "";
             return [String(code).trim(), desc];
@@ -1429,11 +1437,11 @@
           displayDiagnosisResults(list, typeId);
         } else {
           const apiUrl = `${ICD10_SEARCH_API}?sf=code,name&terms=${encodeURIComponent(t)}&maxList=15`;
-          const res = await fetch(apiUrl, { signal: diagnosisSearchController.signal });
-          const data = await res.json();
+          let data = await fetchJson(apiUrl, { signal: diagnosisSearchController.signal });
+          if (!data) data = await fetchJsonWithProxy(apiUrl);
           loadingEl.style.display = "none";
-          const pairs = Array.isArray(data[3]) && data[3].length > 0 ? data[3] : null;
-          const list = pairs || (Array.isArray(data[1]) && data[1].length > 0 && Array.isArray(data[1][0]) ? data[1] : null);
+          const pairs = Array.isArray(data && data[3]) && data[3].length > 0 ? data[3] : null;
+          const list = pairs || (Array.isArray(data && data[1]) && data[1].length > 0 && Array.isArray(data[1][0]) ? data[1] : null);
           if (!list || list.length === 0) {
             displayDiagnosisNoResults(t, typeId);
             return;
