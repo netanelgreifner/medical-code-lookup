@@ -1397,14 +1397,13 @@
       try {
         if (typeId === "snomed") {
           const apiUrl = `${SNOMED_SNOWSTORM_BASE}/MAIN/concepts?term=${encodeURIComponent(t)}&limit=15`;
-          const res = await fetch(apiUrl, { signal: diagnosisSearchController.signal });
-          if (!res.ok) throw new Error("Snowstorm request failed");
-          const data = await res.json();
+          let data = await fetchJson(apiUrl, { signal: diagnosisSearchController.signal });
+          if (!data) data = await fetchJsonWithProxy(apiUrl);
           loadingEl.style.display = "none";
-          const items = data.items || [];
+          const items = (data && data.items) ? data.items : [];
           const list = items.map(item => {
-            const code = (item.conceptId != null) ? String(item.conceptId).trim() : "";
-            const desc = (item.pt && item.pt.term) ? item.pt.term : (item.fsn && item.fsn.term ? item.fsn.term : "");
+            const code = (item.conceptId != null) ? String(item.conceptId).trim() : (item.id != null ? String(item.id).trim() : "");
+            const desc = (item.pt && (item.pt.term || item.pt.value)) ? (item.pt.term || item.pt.value) : (item.fsn && (item.fsn.term || item.fsn.value)) ? (item.fsn.term || item.fsn.value) : (item.idAndFsnTerm || "").replace(/^\d+\s*\|\s*|\s*\|$/g, "").trim() || "";
             return [code, desc];
           }).filter(pair => pair[0]);
           if (list.length === 0) {
