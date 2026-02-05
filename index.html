@@ -405,7 +405,9 @@
       NDC: ["00002-3105-02", "00003-2188-51", "00069-5420-66"]
     };
     const CORS_PROXY = "https://corsproxy.io/?";
-    const CORS_PROXY_ALT = "https://api.allorigins.win/raw?url=";
+    const CORS_ALLORIGINS_GET = "https://api.allorigins.win/get?url=";
+    const CORS_ALLORIGINS_RAW = "https://api.allorigins.win/raw?url=";
+    const PROXY_OPTS = { referrerPolicy: "no-referrer", mode: "cors" };
     const RXNAV_REST = "https://rxnav.nlm.nih.gov/REST";
     const RXNAV_NDC_STATUS = "https://rxnav.nlm.nih.gov/REST/ndcstatus.json";
     const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
@@ -535,9 +537,19 @@
     async function fetchJsonWithProxy(url) {
       let data = await fetchJson(url);
       if (data !== null) return data;
+      const encoded = encodeURIComponent(url);
       try {
-        const proxyUrl = CORS_PROXY + encodeURIComponent(url);
-        const res = await fetch(proxyUrl, { headers: { Accept: "application/json" } });
+        const res = await fetch(CORS_ALLORIGINS_GET + encoded, { ...PROXY_OPTS, headers: { Accept: "application/json" } });
+        if (res.ok) {
+          const wrap = await res.json();
+          if (wrap && wrap.contents != null) {
+            const parsed = typeof wrap.contents === "string" ? (function() { try { return JSON.parse(wrap.contents); } catch (_) { return null; } })() : wrap.contents;
+            if (parsed != null) return parsed;
+          }
+        }
+      } catch (_) {}
+      try {
+        const res = await fetch(CORS_PROXY + encoded, { ...PROXY_OPTS, headers: { Accept: "application/json" } });
         if (!res.ok) return null;
         return await res.json();
       } catch (_) {
@@ -553,19 +565,26 @@
 
     async function fetchHtmlWithProxy(url) {
       const headers = { "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "User-Agent": USER_AGENT };
+      const encoded = encodeURIComponent(url);
       try {
-        const proxyUrl1 = CORS_PROXY + encodeURIComponent(url);
-        const res1 = await fetch(proxyUrl1, { headers });
-        if (res1.ok) {
-          const html = await res1.text();
-          if (html && html.length > 200 && (html.includes("AAPC") || html.includes("aapc") || html.includes("CPT") || html.includes("HCPCS") || html.includes("codify"))) return html;
+        const res = await fetch(CORS_ALLORIGINS_GET + encoded, { ...PROXY_OPTS, headers });
+        if (res.ok) {
+          const wrap = await res.json();
+          const html = (wrap && wrap.contents != null) ? (typeof wrap.contents === "string" ? wrap.contents : "") : "";
+          if (html.length > 200) return html;
         }
       } catch (_) {}
       try {
-        const proxyUrl2 = CORS_PROXY_ALT + encodeURIComponent(url);
-        const res2 = await fetch(proxyUrl2, { headers });
-        if (res2.ok) {
-          const html = await res2.text();
+        const res = await fetch(CORS_ALLORIGINS_RAW + encoded, { ...PROXY_OPTS, headers });
+        if (res.ok) {
+          const html = await res.text();
+          if (html && html.length > 200) return html;
+        }
+      } catch (_) {}
+      try {
+        const res = await fetch(CORS_PROXY + encoded, { ...PROXY_OPTS, headers });
+        if (res.ok) {
+          const html = await res.text();
           if (html && html.length > 200) return html;
         }
       } catch (_) {}
