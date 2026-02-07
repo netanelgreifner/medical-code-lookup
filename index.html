@@ -412,6 +412,7 @@
     const RXNAV_NDC_STATUS = "https://rxnav.nlm.nih.gov/REST/ndcstatus.json";
     const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
     const NLM_ICD = "https://clinicaltables.nlm.nih.gov/api/icd10cm/v3/search";
+    const NLM_HCPCS = "https://clinicaltables.nlm.nih.gov/api/hcpcs/v3/search";
     const LOINC_URL = "https://clinicaltables.nlm.nih.gov/api/loinc_items/v3/search";
     const WHO_BASE = "https://id.who.int/icd/release/11/2024-01";
     const SNOMED_BASES = [
@@ -524,6 +525,20 @@
       }
     }
 
+    /** Fetch with timeout to avoid hanging. Returns null on timeout or error. */
+    async function fetchWithTimeout(url, ms, opts = {}) {
+      const ctrl = new AbortController();
+      const id = setTimeout(() => ctrl.abort(), ms);
+      try {
+        const res = await fetch(url, { ...opts, signal: ctrl.signal });
+        clearTimeout(id);
+        return res;
+      } catch (_) {
+        clearTimeout(id);
+        return null;
+      }
+    }
+
     async function fetchJson(url, opts = {}) {
       try {
         const res = await fetch(url, { ...opts, headers: { Accept: "application/json", ...(opts.headers || {}) } });
@@ -563,27 +578,29 @@
       return await fetchJsonWithProxy(url);
     }
 
+    const PROXY_TIMEOUT_MS = 6000;
+
     async function fetchHtmlWithProxy(url) {
       const headers = { "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "User-Agent": USER_AGENT };
       const encoded = encodeURIComponent(url);
       try {
-        const res = await fetch(CORS_ALLORIGINS_GET + encoded, { ...PROXY_OPTS, headers });
-        if (res.ok) {
+        const res = await fetchWithTimeout(CORS_ALLORIGINS_RAW + encoded, PROXY_TIMEOUT_MS, { ...PROXY_OPTS, headers });
+        if (res && res.ok) {
+          const html = await res.text();
+          if (html && html.length > 200) return html;
+        }
+      } catch (_) {}
+      try {
+        const res = await fetchWithTimeout(CORS_ALLORIGINS_GET + encoded, PROXY_TIMEOUT_MS, { ...PROXY_OPTS, headers });
+        if (res && res.ok) {
           const wrap = await res.json();
           const html = (wrap && wrap.contents != null) ? (typeof wrap.contents === "string" ? wrap.contents : "") : "";
           if (html.length > 200) return html;
         }
       } catch (_) {}
       try {
-        const res = await fetch(CORS_ALLORIGINS_RAW + encoded, { ...PROXY_OPTS, headers });
-        if (res.ok) {
-          const html = await res.text();
-          if (html && html.length > 200) return html;
-        }
-      } catch (_) {}
-      try {
-        const res = await fetch(CORS_PROXY + encoded, { ...PROXY_OPTS, headers });
-        if (res.ok) {
+        const res = await fetchWithTimeout(CORS_PROXY + encoded, PROXY_TIMEOUT_MS, { ...PROXY_OPTS, headers });
+        if (res && res.ok) {
           const html = await res.text();
           if (html && html.length > 200) return html;
         }
@@ -750,9 +767,14 @@
       code = code.trim().replace(/\s/g, "");
       if (!code || !/^\d{4,5}$/.test(code)) return null;
       const url = `https://www.aapc.com/codes/cpt-codes/${code}`;
+      const proxyUrl = CORS_PROXY + encodeURIComponent(url);
       try {
-        const html = await fetchHtmlWithProxy(url);
-        if (!html) return null;
+        const res = await fetch(proxyUrl, {
+          headers: { "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "User-Agent": USER_AGENT }
+        });
+        if (res.status === 404) return null;
+        if (!res.ok) return null;
+        const html = await res.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
         const titleEl = doc.querySelector("title");
@@ -765,7 +787,6 @@
           const codifyLast = parts.length > 0 && /Codify\s+by\s+AAPC/i.test(parts[parts.length - 1]);
           const firstIsCode = parts.length > 0 && /^CPT\s*®?\s*Code\s*\d+/i.test(parts[0]);
           if (codifyLast && firstIsCode && parts.length >= 2) {
-            // Middle part(s) = clinical description only
             description = parts.slice(1, parts.length - 1).join(" - ");
             if (parts.length >= 3) category = parts[1];
           } else if (parts.length >= 2) {
@@ -777,7 +798,6 @@
           const underMatch = title.match(/Under\s+(.+?)(?:\s*-\s*|$)/i);
           if (underMatch) category = underMatch[1].trim();
         }
-        // Fallback: meta description, then clean it
         if (!description) {
           const metaDesc = doc.querySelector('meta[name="description"]') || doc.querySelector('meta[property="og:description"]');
           if (metaDesc && metaDesc.getAttribute("content")) description = metaDesc.getAttribute("content").trim();
@@ -807,12 +827,10 @@
       if (!text || !text.trim()) return "";
       let s = text.trim();
       const codeUpper = (code || "").toUpperCase();
-      // Remove prefix: "HCPCS Code for ", "HCPCS Code A4244 - ", "A4244 - "
       s = s.replace(/^HCPCS\s*Code\s*for\s+/i, "");
       s = s.replace(new RegExp(`^HCPCS\\s*Code\\s*${codeUpper}\\s*[-,:\\s]+\\s*`, "i"), "");
       s = s.replace(/^HCPCS\s*Code\s*[A-Z]\d{4}\s*[-,:\s]+\s*/i, "");
       s = s.replace(new RegExp(`^${codeUpper}\\s*[-–—:]\\s*`, "i"), "");
-      // Remove suffix: " A4244", " - HCPCS Codes", " - Codify by AAPC"
       s = s.replace(new RegExp(`\\s+${codeUpper}\\s*$`, "i"), "");
       s = s.replace(/\s*[-,]\s*HCPCS\s+Codes?\s*$/i, "");
       s = s.replace(/\s*[-,]\s*Codify\s+by\s+AAPC\.?\s*$/i, "");
@@ -824,15 +842,20 @@
       code = code.trim().replace(/\s/g, "").toUpperCase();
       if (!code || !/^[A-Z]\d{4}$/.test(code)) return null;
       const url = `https://www.aapc.com/codes/hcpcs-codes/${code}`;
+      const proxyUrl = CORS_PROXY + encodeURIComponent(url);
       try {
-        const html = await fetchHtmlWithProxy(url);
-        if (!html) return null;
+        const res = await fetch(proxyUrl, {
+          headers: { "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "User-Agent": USER_AGENT }
+        });
+        if (res.status === 404) return null;
+        if (!res.ok) return null;
+        const html = await res.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
         let description = "";
         let category = "";
 
-        // 1) Prefer "Official Long Descriptor" section: heading followed by the description text
+        // 1) Prefer "Official Long Descriptor" section
         const headings = doc.querySelectorAll("h1, h2, h3, h4");
         for (const h of headings) {
           if (/Official\s+Long\s+Descriptor/i.test(h.textContent || "")) {
@@ -859,7 +882,7 @@
           }
         }
 
-        // 3) Category from h2: "HCPCS code A4244 for ... falls under Other Supplies..."
+        // 3) Category from h2
         if (!category) {
           const h2 = doc.querySelector("h2");
           const h2Text = h2 ? h2.textContent.trim() : "";
