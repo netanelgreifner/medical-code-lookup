@@ -1785,3 +1785,65 @@
         clearBtn.style.display = v.length > 0 ? "block" : "none";
         debouncedSearch(v);
       });
+      clearBtn.addEventListener("click", () => {
+        clearSearch();
+        input.focus();
+      });
+      bindExampleSearchButtons();
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          const v = input.value.trim();
+          if (v.length >= 2) searchByDiagnosisName(v);
+        }
+      });
+    }
+    initializeDiagnosisSearch();
+
+    document.getElementById("lookupBtn").addEventListener("click", async () => {
+      const selected = document.querySelector('input[name="codeType"]:checked');
+      const typeId = selected ? selected.value : "icd";
+      const apiKey = CODE_TYPE_TO_API[typeId];
+      let code = document.getElementById("codeInput").value.trim();
+      const typeLabel = (CODE_TYPES.find(t => t.id === typeId) || {}).label || typeId;
+      clearMessage();
+      document.getElementById("resultContainer").innerHTML = "";
+      if (!code) {
+        showMessage("Please enter a code.", "error");
+        return;
+      }
+      if (apiKey === "HCPCS") {
+        code = code.replace(/\s/g, "").toUpperCase();
+        if (!/^[A-Z]\d{4}$/.test(code)) {
+          showMessage("Invalid HCPCS format. Use one letter followed by 4 digits (e.g. A4244, J0135, E0118).", "error");
+          return;
+        }
+        document.getElementById("codeInput").value = code;
+      }
+      setLoading(true);
+      try {
+        const result = await Promise.race([lookup(apiKey, code), lookupTimeout(LOOKUP_TIMEOUT_MS)]);
+        if (result) {
+          showMessage("Found.", "success");
+          renderResult(result, apiKey, code);
+          addToHistory(typeLabel, code, result.display_name);
+        } else {
+          showMessage(`Could not find ${typeLabel} code: ${code}. Check the code and try again.`, "error");
+        }
+      } catch (e) {
+        if (e && e.message === "LOOKUP_TIMEOUT") {
+          showMessage("Lookup timed out after 8 seconds. Please try again or check your connection.", "error");
+        } else {
+          showMessage("Network or CORS error. Try running the page from a local server (e.g. <code>python -m http.server</code>) or check your connection.", "error");
+        }
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    document.getElementById("codeInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") document.getElementById("lookupBtn").click();
+    });
+  </script>
+</body>
+</html>
+c
