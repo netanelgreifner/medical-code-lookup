@@ -484,6 +484,8 @@
         </div>`;
     }
 
+    const ATC_LEVEL_LABELS = { 1: "Level 1 – Anatomical main group", 3: "Level 2 – Therapeutic subgroup", 4: "Level 3 – Pharmacological subgroup", 5: "Level 4 – Chemical subgroup", 7: "Level 5 – Chemical substance" };
+
     function renderResult(data, codeType, code) {
       const name = escapeHtml(data.display_name || "—");
       const codeLabel = escapeHtml(data.code_label || "Code");
@@ -491,9 +493,13 @@
       const source = escapeHtml(data.source || "—");
       const category = data.category ? escapeHtml(data.category) : "";
       const rxcui = data.rxcui ? escapeHtml(data.rxcui) : "";
+      const atcClassName = data.atc_class_name ? escapeHtml(data.atc_class_name) : "";
+      const atcClassBlock = atcClassName ? `<p class="source-label">ATC Classification</p><p class="source-value">${atcClassName}</p>` : "";
       const tty = data.term_type;
       const ttyLabel = tty ? (TTY_LABELS[tty.toUpperCase()] || tty) : null;
       const ttyBadge = ttyLabel ? `<span class="badge badge-teal">${escapeHtml(ttyLabel)}</span>` : "";
+      const atcLevelLabel = codeType === "ATC" && data.code_value ? (ATC_LEVEL_LABELS[data.code_value.length] || null) : null;
+      const atcLevelBadge = atcLevelLabel ? `<span class="badge badge-teal">${escapeHtml(atcLevelLabel)}</span>` : "";
       const categoryBlock = category ? `<p class="source-label">Category</p><p class="source-value">${category}</p>` : "";
       const rxcuiBlock = rxcui ? `<p class="source-label">RxCUI</p><p class="source-value">${rxcui}</p>` : "";
       const isDrug = codeType === "RXCUI" || codeType === "NDC" || codeType === "ATC";
@@ -504,10 +510,11 @@
         <div class="result-card">
           <p class="display-name">${name}</p>
           <div class="badges">
-            <span class="badge">${codeLabel}: ${codeVal}</span>${ttyBadge}
+            <span class="badge">${codeLabel}: ${codeVal}</span>${ttyBadge}${atcLevelBadge}
           </div>
           ${categoryBlock}
           ${rxcuiBlock}
+          ${atcClassBlock}
           <p class="source-label">Source</p>
           <p class="source-value">${source}</p>
         </div>${conversionHtml}`;
@@ -755,15 +762,30 @@
         if (typeof rxcuiList === "string") rxcuiList = [rxcuiList];
         if (!rxcuiList.length) return null;
         const first = rxcuiList[0];
-        const pData = await fetchJsonExternal(`https://rxnav.nlm.nih.gov/REST/rxcui/${first}/properties.json`);
+        const [pData, atcClassName] = await Promise.all([
+          fetchJsonExternal(`https://rxnav.nlm.nih.gov/REST/rxcui/${first}/properties.json`),
+          fetchAtcName(code).catch(() => null)
+        ]);
         let name = `(RxCUI ${first})`;
         if (pData) {
           const p = pData.properties || pData;
           name = p.name || p.synonym || name;
         }
+        let atcClassDisplay = atcClassName || undefined;
+        if (code.length === 7 && atcClassDisplay === name) {
+          const level4Name = await fetchRxclassAtcDescription(code.slice(0, 5)).catch(() => null);
+          if (level4Name) atcClassDisplay = level4Name;
+        }
         let source = "NLM RxNorm API (ATC mapping)";
         if (rxcuiList.length > 1) source += ` — maps to ${rxcuiList.length} RxNorm concept(s); showing first.`;
-        return { display_name: name, code_label: "ATC Code", code_value: code, source, term_type: null };
+        return {
+          display_name: name,
+          code_label: "ATC Code",
+          code_value: code,
+          source,
+          term_type: null,
+          atc_class_name: atcClassDisplay
+        };
       } catch (_) {}
       return null;
     }
@@ -1061,12 +1083,46 @@
       return name ? String(name).trim() : null;
     }
 
+    /** Resolve ATC name: RxClass for L1–4, RxNorm drug name or Level 4 class for L5. */
+    async function fetchAtcName(atcCode) {
+      const code = (atcCode || "").trim().toUpperCase();
+      if (!code) return null;
+
+      const rxClassName = await fetchRxclassAtcDescription(code).catch(() => null);
+      if (rxClassName) return rxClassName;
+
+      if (code.length === 7) {
+        try {
+          const data = await fetchJsonExternal(
+            `${RXNAV_REST}/rxcui.json?idtype=ATC&id=${encodeURIComponent(code)}`
+          );
+          const idGroup = data && data.idGroup;
+          let rxnormIds = idGroup && idGroup.rxnormId;
+          if (rxnormIds) {
+            if (!Array.isArray(rxnormIds)) rxnormIds = [rxnormIds];
+            if (rxnormIds.length > 0) {
+              const name = await fetchRxcuiName(rxnormIds[0]).catch(() => null);
+              if (name) return name;
+            }
+          }
+        } catch (_) {}
+      }
+
+      if (code.length === 7) {
+        const level4Code = code.slice(0, 5);
+        const level4Name = await fetchRxclassAtcDescription(level4Code).catch(() => null);
+        if (level4Name) return level4Name;
+      }
+
+      return null;
+    }
+
     async function getATCNamesForCodes(atcCodes) {
       console.log("[RxCUI→ATC] Getting names for", atcCodes.length, "codes:", atcCodes);
       const results = await Promise.all(atcCodes.map(async (code) => {
         try {
           console.log("[RxCUI→ATC] Looking up name for ATC:", code);
-          const name = await fetchRxclassAtcDescription(code);
+          const name = await fetchAtcName(code);
           const out = { code: String(code), name: name || "Name not available" };
           console.log("[RxCUI→ATC] Name for", code, ":", out.name);
           return out;
@@ -1729,65 +1785,3 @@
         clearBtn.style.display = v.length > 0 ? "block" : "none";
         debouncedSearch(v);
       });
-      clearBtn.addEventListener("click", () => {
-        clearSearch();
-        input.focus();
-      });
-      bindExampleSearchButtons();
-      input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          const v = input.value.trim();
-          if (v.length >= 2) searchByDiagnosisName(v);
-        }
-      });
-    }
-    initializeDiagnosisSearch();
-
-    document.getElementById("lookupBtn").addEventListener("click", async () => {
-      const selected = document.querySelector('input[name="codeType"]:checked');
-      const typeId = selected ? selected.value : "icd";
-      const apiKey = CODE_TYPE_TO_API[typeId];
-      let code = document.getElementById("codeInput").value.trim();
-      const typeLabel = (CODE_TYPES.find(t => t.id === typeId) || {}).label || typeId;
-      clearMessage();
-      document.getElementById("resultContainer").innerHTML = "";
-      if (!code) {
-        showMessage("Please enter a code.", "error");
-        return;
-      }
-      if (apiKey === "HCPCS") {
-        code = code.replace(/\s/g, "").toUpperCase();
-        if (!/^[A-Z]\d{4}$/.test(code)) {
-          showMessage("Invalid HCPCS format. Use one letter followed by 4 digits (e.g. A4244, J0135, E0118).", "error");
-          return;
-        }
-        document.getElementById("codeInput").value = code;
-      }
-      setLoading(true);
-      try {
-        const result = await Promise.race([lookup(apiKey, code), lookupTimeout(LOOKUP_TIMEOUT_MS)]);
-        if (result) {
-          showMessage("Found.", "success");
-          renderResult(result, apiKey, code);
-          addToHistory(typeLabel, code, result.display_name);
-        } else {
-          showMessage(`Could not find ${typeLabel} code: ${code}. Check the code and try again.`, "error");
-        }
-      } catch (e) {
-        if (e && e.message === "LOOKUP_TIMEOUT") {
-          showMessage("Lookup timed out after 8 seconds. Please try again or check your connection.", "error");
-        } else {
-          showMessage("Network or CORS error. Try running the page from a local server (e.g. <code>python -m http.server</code>) or check your connection.", "error");
-        }
-      } finally {
-        setLoading(false);
-      }
-    });
-
-    document.getElementById("codeInput").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") document.getElementById("lookupBtn").click();
-    });
-  </script>
-</body>
-</html>
-c
