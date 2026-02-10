@@ -525,7 +525,7 @@
       }
     }
 
-    const LOOKUP_TIMEOUT_MS = 5000;
+    const LOOKUP_TIMEOUT_MS = 8000;
     function lookupTimeout(ms) {
       return new Promise((_, reject) => setTimeout(() => reject(new Error("LOOKUP_TIMEOUT")), ms));
     }
@@ -594,7 +594,7 @@
       return await fetchJsonWithProxy(url);
     }
 
-    const PROXY_TIMEOUT_MS = 6000;
+    const PROXY_TIMEOUT_MS = 3000;
 
     async function fetchHtmlWithProxy(url) {
       const headers = { "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "User-Agent": USER_AGENT };
@@ -622,6 +622,52 @@
         }
       } catch (_) {}
       return null;
+    }
+
+    /** Fetch HTML via all CORS proxies in parallel — return first success. Much faster than sequential. */
+    async function fetchHtmlWithProxyRace(url) {
+      const encoded = encodeURIComponent(url);
+      const headers = {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "User-Agent": USER_AGENT
+      };
+
+      const attempts = [
+        (async () => {
+          const res = await fetchWithTimeout(
+            CORS_ALLORIGINS_RAW + encoded, PROXY_TIMEOUT_MS, { ...PROXY_OPTS, headers }
+          );
+          if (!res || !res.ok) throw new Error("fail");
+          const html = await res.text();
+          if (!html || html.length < 200) throw new Error("empty");
+          return html;
+        })(),
+        (async () => {
+          const res = await fetchWithTimeout(
+            CORS_ALLORIGINS_GET + encoded, PROXY_TIMEOUT_MS, { ...PROXY_OPTS, headers }
+          );
+          if (!res || !res.ok) throw new Error("fail");
+          const wrap = await res.json();
+          const html = (wrap && wrap.contents && typeof wrap.contents === "string") ? wrap.contents : "";
+          if (html.length < 200) throw new Error("empty");
+          return html;
+        })(),
+        (async () => {
+          const res = await fetchWithTimeout(
+            CORS_PROXY + encoded, PROXY_TIMEOUT_MS, { ...PROXY_OPTS, headers }
+          );
+          if (!res || !res.ok) throw new Error("fail");
+          const html = await res.text();
+          if (!html || html.length < 200) throw new Error("empty");
+          return html;
+        })()
+      ];
+
+      try {
+        return await Promise.any(attempts);
+      } catch (_) {
+        return null;
+      }
     }
 
     const SNOMED_REQUEST_MS = 2000;
@@ -793,14 +839,9 @@
       code = code.trim().replace(/\s/g, "");
       if (!code || !/^\d{4,5}$/.test(code)) return null;
       const url = `https://www.aapc.com/codes/cpt-codes/${code}`;
-      const proxyUrl = CORS_PROXY + encodeURIComponent(url);
       try {
-        const res = await fetch(proxyUrl, {
-          headers: { "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "User-Agent": USER_AGENT }
-        });
-        if (res.status === 404) return null;
-        if (!res.ok) return null;
-        const html = await res.text();
+        const html = await fetchHtmlWithProxyRace(url);
+        if (!html) return null;
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
         const titleEl = doc.querySelector("title");
@@ -867,21 +908,54 @@
     async function fetchHcpcs(code) {
       code = code.trim().replace(/\s/g, "").toUpperCase();
       if (!code || !/^[A-Z]\d{4}$/.test(code)) return null;
-      const url = `https://www.aapc.com/codes/hcpcs-codes/${code}`;
-      const proxyUrl = CORS_PROXY + encodeURIComponent(url);
+
       try {
-        const res = await fetch(proxyUrl, {
-          headers: { "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "User-Agent": USER_AGENT }
-        });
-        if (res.status === 404) return null;
-        if (!res.ok) return null;
-        const html = await res.text();
+        const nlmUrl = `${NLM_HCPCS}?terms=${encodeURIComponent(code)}&sf=code&df=code,display&ef=long_desc,short_desc&maxList=20`;
+        const data = await fetchJsonExternal(nlmUrl);
+        if (Array.isArray(data) && data.length >= 4) {
+          const codes = data[1] || [];
+          const extraFields = data[2];
+          const displayRows = data[3] || [];
+          const matchIndex = codes.findIndex(c => String(c).trim().toUpperCase() === code);
+          if (matchIndex !== -1) {
+            let displayName = "";
+            if (matchIndex < displayRows.length && displayRows[matchIndex]) {
+              const row = displayRows[matchIndex];
+              displayName = Array.isArray(row) && row[1] != null ? String(row[1]).trim() : (row ? String(row).trim() : "");
+            }
+            if (!displayName && extraFields && typeof extraFields === "object") {
+              const longDesc = extraFields.long_desc;
+              if (Array.isArray(longDesc) && longDesc[matchIndex] != null) displayName = String(longDesc[matchIndex]).trim();
+              else if (longDesc != null) displayName = String(longDesc).trim();
+            }
+            if (!displayName && extraFields && typeof extraFields === "object") {
+              const shortDesc = extraFields.short_desc;
+              if (Array.isArray(shortDesc) && shortDesc[matchIndex] != null) displayName = String(shortDesc[matchIndex]).trim();
+              else if (shortDesc != null) displayName = String(shortDesc).trim();
+            }
+            if (displayName) {
+              return {
+                display_name: displayName,
+                code_label: "HCPCS Code",
+                code_value: code,
+                source: "NLM Clinical Tables API (HCPCS Level II)",
+                term_type: null,
+                category: null
+              };
+            }
+          }
+        }
+      } catch (_) {}
+
+      const url = `https://www.aapc.com/codes/hcpcs-codes/${code}`;
+      try {
+        const html = await fetchHtmlWithProxyRace(url);
+        if (!html) return null;
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
         let description = "";
         let category = "";
 
-        // 1) Prefer "Official Long Descriptor" section
         const headings = doc.querySelectorAll("h1, h2, h3, h4");
         for (const h of headings) {
           if (/Official\s+Long\s+Descriptor/i.test(h.textContent || "")) {
@@ -897,8 +971,6 @@
             if (description) break;
           }
         }
-
-        // 2) Fallback: parse h1 "HCPCS Code for Alcohol or peroxide, per pint A4244"
         if (!description) {
           const h1 = doc.querySelector("h1");
           const h1Text = h1 ? h1.textContent.trim() : "";
@@ -907,16 +979,12 @@
             if (!description) description = h1Text.replace(/^HCPCS\s*Code\s*for\s+/i, "").replace(new RegExp("\\s*" + code + "\\s*$", "i"), "").trim();
           }
         }
-
-        // 3) Category from h2
         if (!category) {
           const h2 = doc.querySelector("h2");
           const h2Text = h2 ? h2.textContent.trim() : "";
           const underMatch = h2Text.match(/falls?\s+under\s+(.+?)(?:\.|$)/i);
           if (underMatch) category = underMatch[1].trim();
         }
-
-        // 4) Last resort: title or meta
         if (!description) {
           const titleEl = doc.querySelector("title");
           const title = titleEl ? titleEl.textContent.trim() : "";
@@ -932,7 +1000,6 @@
             if (metaDesc && metaDesc.getAttribute("content")) description = metaDesc.getAttribute("content").trim();
           }
         }
-
         description = cleanHcpcsDescription(description, code);
         if (!description && category) description = category;
         if (!description) description = "See AAPC.com for full details.";
@@ -1708,7 +1775,7 @@
         }
       } catch (e) {
         if (e && e.message === "LOOKUP_TIMEOUT") {
-          showMessage("Lookup timed out after 5 seconds. Please try again or check your connection.", "error");
+          showMessage("Lookup timed out after 8 seconds. Please try again or check your connection.", "error");
         } else {
           showMessage("Network or CORS error. Try running the page from a local server (e.g. <code>python -m http.server</code>) or check your connection.", "error");
         }
