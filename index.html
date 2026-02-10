@@ -525,6 +525,11 @@
       }
     }
 
+    const LOOKUP_TIMEOUT_MS = 5000;
+    function lookupTimeout(ms) {
+      return new Promise((_, reject) => setTimeout(() => reject(new Error("LOOKUP_TIMEOUT")), ms));
+    }
+
     /** Fetch with timeout to avoid hanging. Returns null on timeout or error. */
     async function fetchWithTimeout(url, ms, opts = {}) {
       const ctrl = new AbortController();
@@ -543,6 +548,17 @@
       try {
         const res = await fetch(url, { ...opts, headers: { Accept: "application/json", ...(opts.headers || {}) } });
         if (!res.ok) return null;
+        return await res.json();
+      } catch (_) {
+        return null;
+      }
+    }
+
+    /** Fetch JSON with timeout. Returns null on timeout or error. */
+    async function fetchJsonWithTimeout(url, ms) {
+      const res = await fetchWithTimeout(url, ms, { headers: { Accept: "application/json" } });
+      if (!res || !res.ok) return null;
+      try {
         return await res.json();
       } catch (_) {
         return null;
@@ -608,18 +624,28 @@
       return null;
     }
 
+    const SNOMED_REQUEST_MS = 2000;
+
     async function fetchSnomed(code) {
       code = code.trim();
       if (!code || !/^\d+$/.test(code)) return null;
+      const path = `/browser/MAIN/concepts/${code}`;
+      const parseConcept = (data) => {
+        if (!data) return null;
+        const pt = data.pt || {};
+        const fsn = data.fsn || {};
+        const term = (pt.term || pt.value || fsn.term || fsn.value || "").trim();
+        return { display_name: term || "—", code_label: "SNOMED CT Code", code_value: code, source: "Snowstorm SNOMED CT API", term_type: null };
+      };
       for (const base of SNOMED_BASES) {
-        try {
-          const data = await fetchJsonExternal(`${base}/browser/MAIN/concepts/${code}`);
-          if (!data) continue;
-          const pt = data.pt || {};
-          const fsn = data.fsn || {};
-          const term = (pt.term || pt.value || fsn.term || fsn.value || "").trim();
-          return { display_name: term || "—", code_label: "SNOMED CT Code", code_value: code, source: "Snowstorm SNOMED CT API", term_type: null };
-        } catch (_) {}
+        const data = await fetchJsonWithTimeout(base + path, SNOMED_REQUEST_MS);
+        const result = parseConcept(data);
+        if (result) return result;
+      }
+      for (const base of SNOMED_BASES) {
+        const data = await fetchJsonWithProxy(base + path);
+        const result = parseConcept(data);
+        if (result) return result;
       }
       return null;
     }
@@ -985,50 +1011,81 @@
       return results;
     }
 
+    /** Get ingredient RxCUIs for a drug (for matching in ATC class members). */
+    async function fetchIngredientRxcuis(rxcui) {
+      const url = `${RXNAV_REST}/rxcui/${rxcui}/related.json?tty=IN`;
+      const data = await fetchJsonExternal(url);
+      if (!data || !data.relatedGroup || !data.relatedGroup.conceptGroup) return [rxcui];
+      const ids = new Set([String(rxcui)]);
+      const groups = Array.isArray(data.relatedGroup.conceptGroup) ? data.relatedGroup.conceptGroup : [data.relatedGroup.conceptGroup];
+      for (const g of groups) {
+        const props = g.conceptProperties;
+        const list = Array.isArray(props) ? props : (props ? [props] : []);
+        for (const p of list) if (p && p.rxcui) ids.add(String(p.rxcui));
+      }
+      return Array.from(ids);
+    }
+
+    /** Resolve Level 4 ATC (e.g. A10BJ) to Level 5 by fetching class members and matching by rxcui/ingredients. */
+    async function resolveLevel5FromClassMembers(rxcui, level4ClassIds) {
+      const matchIds = await fetchIngredientRxcuis(rxcui);
+      const level5List = [];
+      for (const classId of level4ClassIds) {
+        if (classId.length !== 5) continue;
+        const url = `${RXNAV_REST}/rxclass/classMembers.json?classId=${encodeURIComponent(classId)}&relaSource=ATC`;
+        const data = await fetchJsonExternal(url);
+        if (!data || !data.drugMemberGroup || !data.drugMemberGroup.drugMember) continue;
+        const members = Array.isArray(data.drugMemberGroup.drugMember) ? data.drugMemberGroup.drugMember : [data.drugMemberGroup.drugMember];
+        for (const member of members) {
+          const mc = member.minConcept;
+          const memberRxcui = mc && mc.rxcui != null ? String(mc.rxcui) : null;
+          if (!memberRxcui || !matchIds.includes(memberRxcui)) continue;
+          const attrs = member.nodeAttr;
+          const attrList = Array.isArray(attrs) ? attrs : (attrs ? [attrs] : []);
+          let sourceId = null;
+          let sourceName = null;
+          for (const a of attrList) {
+            if (a.attrName === "SourceId") sourceId = a.attrValue;
+            if (a.attrName === "SourceName") sourceName = a.attrValue;
+          }
+          if (sourceId && sourceId.length === 7) {
+            level5List.push({ code: sourceId, name: sourceName || "Name not available" });
+            break;
+          }
+        }
+      }
+      return level5List.length > 0 ? level5List : null;
+    }
+
     async function fetchRxcuiToAtc(rxcui) {
       console.log("[RxCUI→ATC] === Starting RxCUI to ATC conversion ===");
       console.log("[RxCUI→ATC] Input RxCUI:", rxcui);
 
       try {
         const propUrl = `${RXNAV_REST}/rxcui/${rxcui}/property.json?propName=ATC`;
-        console.log("[RxCUI→ATC] Property API URL:", propUrl);
-
         let data = await fetchJsonExternal(propUrl);
+
         if (!data) {
-          console.log("[RxCUI→ATC] No data from property API, trying RxClass byRxcui...");
           const rxclassUrl = `${RXNAV_REST}/rxclass/class/byRxcui.json?rxcui=${encodeURIComponent(rxcui)}&relaSource=ATC`;
           data = await fetchJsonExternal(rxclassUrl);
-          if (!data) {
-            console.log("[RxCUI→ATC] No data from RxClass either");
-            return null;
-          }
-          console.log("[RxCUI→ATC] RxClass response:", JSON.stringify(data, null, 2));
-          const infoList = data.rxclassDrugInfoList;
-          if (!infoList || !infoList.rxclassDrugInfo) {
-            console.log("[RxCUI→ATC] RxClass: no rxclassDrugInfoList.rxclassDrugInfo");
-            return null;
-          }
-          const atcInfo = infoList.rxclassDrugInfo;
-          const atcArray = Array.isArray(atcInfo) ? atcInfo : (atcInfo ? [atcInfo] : []);
-          const atcList = atcArray
-            .map(item => {
-              const min = item && item.rxclassMinConceptItem;
-              const code = min && min.classId != null ? String(min.classId).trim() : null;
-              const name = min && min.className != null ? String(min.className).trim() : "Name not available";
-              return code ? { code, name } : null;
-            })
-            .filter(Boolean);
+          if (!data || !data.rxclassDrugInfoList || !data.rxclassDrugInfoList.rxclassDrugInfo) return null;
+          const atcInfo = data.rxclassDrugInfoList.rxclassDrugInfo;
+          const atcArray = Array.isArray(atcInfo) ? atcInfo : [atcInfo];
+          const atcList = atcArray.map(item => {
+            const min = item && item.rxclassMinConceptItem;
+            const code = min && min.classId != null ? String(min.classId).trim() : null;
+            const name = min && min.className != null ? String(min.className).trim() : "Name not available";
+            return code ? { code, name } : null;
+          }).filter(Boolean);
           const level5 = atcList.filter(item => item.code.length === 7);
-          console.log("[RxCUI→ATC] RxClass Level 5 codes:", level5);
-          return level5.length > 0 ? level5 : null;
+          if (level5.length > 0) return level5;
+          const level4Ids = atcList.map(item => item.code).filter(c => c.length === 5);
+          if (level4Ids.length > 0) return await resolveLevel5FromClassMembers(rxcui, level4Ids);
+          return null;
         }
-
-        console.log("[RxCUI→ATC] Property API full response:", JSON.stringify(data, null, 2));
-        console.log("[RxCUI→ATC] Has propConceptGroup?", !!data.propConceptGroup);
 
         const group = data.propConceptGroup;
         if (!group) {
-          console.log("[RxCUI→ATC] No propConceptGroup, trying RxClass fallback...");
           const rxclassUrl = `${RXNAV_REST}/rxclass/class/byRxcui.json?rxcui=${encodeURIComponent(rxcui)}&relaSource=ATC`;
           data = await fetchJsonExternal(rxclassUrl);
           if (data && data.rxclassDrugInfoList && data.rxclassDrugInfoList.rxclassDrugInfo) {
@@ -1040,40 +1097,30 @@
               return code ? { code, name } : null;
             }).filter(Boolean);
             const level5 = atcList.filter(item => item.code.length === 7);
-            return level5.length > 0 ? level5 : null;
+            if (level5.length > 0) return level5;
+            const level4Ids = atcList.map(item => item.code).filter(c => c.length === 5);
+            if (level4Ids.length > 0) return await resolveLevel5FromClassMembers(rxcui, level4Ids);
           }
           return null;
         }
 
         const propConcept = group.propConcept;
-        console.log("[RxCUI→ATC] Has propConcept?", !!propConcept, "type:", Array.isArray(propConcept) ? "ARRAY" : typeof propConcept);
-
         let atcCodes = [];
         if (Array.isArray(propConcept)) {
-          console.log("[RxCUI→ATC] propConcept length:", propConcept.length);
-          atcCodes = propConcept.map((item, i) => {
-            const val = item && item.propValue;
-            console.log("[RxCUI→ATC] propConcept[" + i + "].propValue:", val);
-            return val != null ? String(val).trim() : null;
-          }).filter(Boolean);
+          atcCodes = propConcept.map(item => (item && item.propValue != null) ? String(item.propValue).trim() : null).filter(Boolean);
         } else if (propConcept && (propConcept.propValue != null || propConcept.propValue === "")) {
-          console.log("[RxCUI→ATC] Single propConcept.propValue:", propConcept.propValue);
           atcCodes = [String(propConcept.propValue).trim()];
         }
-        console.log("[RxCUI→ATC] Extracted ATC codes (before Level 5 filter):", atcCodes);
 
         const level5Codes = atcCodes.filter(c => c.length === 7);
-        console.log("[RxCUI→ATC] Level 5 only (7 chars):", level5Codes);
-        if (level5Codes.length === 0) {
-          if (atcCodes.length > 0) console.log("[RxCUI→ATC] Only non-Level-5 codes from property API, skipping:", atcCodes);
-          console.log("[RxCUI→ATC] No Level 5 ATC codes to display");
-          return null;
+        if (level5Codes.length > 0) {
+          return await getATCNamesForCodes(level5Codes);
         }
-        atcCodes = level5Codes;
-
-        const atcWithNames = await getATCNamesForCodes(atcCodes);
-        console.log("[RxCUI→ATC] === Conversion complete ===", atcWithNames);
-        return atcWithNames;
+        const level4Codes = atcCodes.filter(c => c.length === 5);
+        if (level4Codes.length > 0) {
+          return await resolveLevel5FromClassMembers(rxcui, level4Codes);
+        }
+        return null;
       } catch (e) {
         console.error("[RxCUI→ATC] Error:", e);
         throw e;
@@ -1187,6 +1234,93 @@
       });
     }
 
+    /** NDC tab: show RxCUI result card + ATC result card below (double convert). */
+    function renderNdcDoubleConversionResult(data, rxcuiVal, rxcuiName, atcWithDesc) {
+      const container = document.getElementById("conversionResult");
+      if (!container) return;
+      const ndcVal = escapeHtml(data.code_value || "—");
+      const ndcName = escapeHtml(data.display_name || "—");
+      const rxcuiEsc = escapeHtml(rxcuiVal);
+      const nameEsc = escapeHtml(rxcuiName || "Name not available");
+
+      let atcCard = "";
+      if (atcWithDesc && atcWithDesc.length > 0) {
+        const isMultiple = atcWithDesc.length > 1;
+        const items = atcWithDesc.map(r => ({ code: String(r.code), name: r.name != null ? String(r.name) : "" }));
+        if (isMultiple) {
+          const listItems = items.map(item => `
+            <li>
+              <div class="conv-item-content">
+                <p class="conv-item-code">• ${escapeHtml(item.code)}</p>
+                ${item.name ? `<p class="conv-item-name">${escapeHtml(item.name)}</p>` : ""}
+              </div>
+              <button type="button" class="btn-small conversion-copy" data-copy="${escapeHtml(item.code)}">📋 Copy</button>
+            </li>`).join("");
+          const allCodes = items.map(i => i.code).join(", ");
+          atcCard = `
+            <div class="conversion-result-card" style="margin-top: 1rem;">
+              <p class="conv-title">🔄 ATC Codes (Level 5)</p>
+              <p class="conv-original">From RxCUI: ${rxcuiEsc}</p>
+              <p class="conv-result">➜ ATC Codes (Level 5):</p>
+              <ul class="conv-list">${listItems}</ul>
+              <div class="conv-actions">
+                <button type="button" class="btn-small conversion-copy-all" data-copy="${escapeHtml(allCodes)}" data-count="${items.length}">📋 Copy All Codes</button>
+              </div>
+            </div>`;
+        } else {
+          const single = items[0];
+          atcCard = `
+            <div class="conversion-result-card" style="margin-top: 1rem;">
+              <p class="conv-title">🔄 ATC Code (Level 5)</p>
+              <p class="conv-original">From RxCUI: ${rxcuiEsc}</p>
+              <p class="conv-result">➜ ATC Code (Level 5): ${escapeHtml(single.code)}</p>
+              ${single.name ? `<p class="conv-item-name">${escapeHtml(single.name)}</p>` : ""}
+              <div class="conv-actions">
+                <button type="button" class="btn-small conversion-copy" data-copy="${escapeHtml(single.code)}">📋 Copy</button>
+              </div>
+            </div>`;
+        }
+      } else {
+        atcCard = `<div class="conversion-empty" style="margin-top: 1rem;">⚠️ Only general ATC classification available (no specific Level 5 codes).</div>`;
+      }
+
+      container.innerHTML = `
+        <div class="conversion-result-card">
+          <p class="conv-title">🔄 Conversion Result</p>
+          <p class="conv-original">Original: NDC ${ndcVal}</p>
+          <p class="conv-original">${ndcName}</p>
+          <p class="conv-result">➜ RxCUI: ${rxcuiEsc}</p>
+          <p class="conv-item-name">${nameEsc}</p>
+          <div class="conv-actions">
+            <button type="button" class="btn-small conversion-copy" data-copy="${rxcuiEsc}">📋 Copy</button>
+            <button type="button" class="btn-small conversion-back">← Back</button>
+          </div>
+        </div>
+        ${atcCard}`;
+
+      container.querySelectorAll(".conversion-copy").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const copyVal = btn.getAttribute("data-copy");
+          if (copyVal) navigator.clipboard.writeText(copyVal).then(() => showCopiedToast("Copied!"));
+        });
+      });
+      const copyAllBtn = container.querySelector(".conversion-copy-all");
+      if (copyAllBtn) {
+        copyAllBtn.addEventListener("click", () => {
+          const copyVal = copyAllBtn.getAttribute("data-copy");
+          const count = copyAllBtn.getAttribute("data-count");
+          if (copyVal) navigator.clipboard.writeText(copyVal).then(() => showCopiedToast(count ? "Copied " + count + " codes!" : "Copied!"));
+        });
+      }
+      const backBtn = container.querySelector(".conversion-back");
+      if (backBtn) {
+        backBtn.addEventListener("click", () => {
+          container.innerHTML = "";
+          if (lastDrugResult) renderResult(lastDrugResult.data, lastDrugResult.codeType, lastDrugResult.code);
+        });
+      }
+    }
+
     function showConversionError(message, retryFn) {
       const container = document.getElementById("conversionResult");
       if (!container) return;
@@ -1228,9 +1362,11 @@
             } else if (target === "RXCUI" && ndc) {
               const rxcuiVal = await fetchNdcToRxcui(ndc);
               if (rxcuiVal) {
-                btn.innerHTML = "<span class=\"spinner\" style=\"border-width:2px;width:0.75rem;height:0.75rem;\"></span> Fetching details...";
+                btn.innerHTML = "<span class=\"spinner\" style=\"border-width:2px;width:0.75rem;height:0.75rem;\"></span> Fetching RxCUI...";
                 const name = await fetchRxcuiName(rxcuiVal).catch(() => null);
-                renderConversionResult(data, "RXCUI", [{ code: rxcuiVal, name: name || "Name not available" }], "RxCUI");
+                btn.innerHTML = "<span class=\"spinner\" style=\"border-width:2px;width:0.75rem;height:0.75rem;\"></span> Converting to ATC...";
+                const atcWithDesc = await fetchRxcuiToAtc(rxcuiVal).catch(() => null);
+                renderNdcDoubleConversionResult(data, rxcuiVal, name || "Name not available", atcWithDesc);
               } else showConversionEmpty();
             } else if (target === "RXCUI" && atc) {
               const rxcuiList = await fetchAtcToRxcui(atc);
@@ -1331,21 +1467,6 @@
         <button type="button" class="example-btn" data-term="cough">cough</button>
         <button type="button" class="example-btn" data-term="asthma">asthma</button>`;
         }
-      } else if (typeId === "snomed") {
-        if (sectionTitle) sectionTitle.textContent = "🔍 Search by Clinical Term";
-        if (sectionSubtitle) sectionSubtitle.textContent = "Search SNOMED CT codes by typing a clinical term or finding (e.g., diabetes mellitus, migraine, hypertension)";
-        if (searchInput) searchInput.placeholder = "Enter clinical term or finding...";
-        if (examplesContainer) {
-          examplesContainer.innerHTML = `<span class="label">Try:</span>
-        <button type="button" class="example-btn" data-term="diabetes mellitus">diabetes mellitus</button>
-        <button type="button" class="example-btn" data-term="migraine">migraine</button>
-        <button type="button" class="example-btn" data-term="hypertension">hypertension</button>
-        <button type="button" class="example-btn" data-term="pneumonia">pneumonia</button>
-        <button type="button" class="example-btn" data-term="asthma">asthma</button>
-        <button type="button" class="example-btn" data-term="heart failure">heart failure</button>
-        <button type="button" class="example-btn" data-term="fracture">fracture</button>
-        <button type="button" class="example-btn" data-term="infection">infection</button>`;
-        }
       } else if (typeId === "loinc") {
         if (sectionTitle) sectionTitle.textContent = "🔍 Search by Lab or Observation Name";
         if (sectionSubtitle) sectionSubtitle.textContent = "Search LOINC codes by test name or observation (e.g., glucose, hemoglobin, creatinine, sodium)";
@@ -1384,7 +1505,7 @@
       const typeId = selected ? selected.value : "icd";
       const section = document.getElementById("diagnosisSearchSection");
       if (!section) return;
-      if (typeId === "icd" || typeId === "snomed" || typeId === "loinc") {
+      if (typeId === "icd" || typeId === "loinc") {
         section.style.display = "block";
         updateSearchSectionLabels(typeId);
       } else {
@@ -1427,7 +1548,6 @@
 
     let diagnosisSearchController = null;
     const ICD10_SEARCH_API = "https://clinicaltables.nlm.nih.gov/api/icd10cm/v3/search";
-    const SNOMED_SNOWSTORM_BASE = "https://snowstorm.snomedtools.org/snowstorm/snomed-ct";
 
     async function searchByDiagnosisName(term) {
       const t = (term || "").trim();
@@ -1437,7 +1557,7 @@
       }
       const selected = document.querySelector('input[name="codeType"]:checked');
       const typeId = selected ? selected.value : "icd";
-      if (typeId !== "icd" && typeId !== "snomed" && typeId !== "loinc") return;
+      if (typeId !== "icd" && typeId !== "loinc") return;
       const searchResults = document.getElementById("searchResults");
       const loadingEl = document.getElementById("searchLoading");
       if (diagnosisSearchController) diagnosisSearchController.abort();
@@ -1445,23 +1565,7 @@
       loadingEl.style.display = "block";
       searchResults.style.display = "none";
       try {
-        if (typeId === "snomed") {
-          const apiUrl = `${SNOMED_SNOWSTORM_BASE}/MAIN/concepts?term=${encodeURIComponent(t)}&limit=15`;
-          let data = await fetchJson(apiUrl, { signal: diagnosisSearchController.signal });
-          if (!data) data = await fetchJsonWithProxy(apiUrl);
-          loadingEl.style.display = "none";
-          const items = (data && data.items) ? data.items : [];
-          const list = items.map(item => {
-            const code = (item.conceptId != null) ? String(item.conceptId).trim() : (item.id != null ? String(item.id).trim() : "");
-            const desc = (item.pt && (item.pt.term || item.pt.value)) ? (item.pt.term || item.pt.value) : (item.fsn && (item.fsn.term || item.fsn.value)) ? (item.fsn.term || item.fsn.value) : (item.idAndFsnTerm || "").replace(/^\d+\s*\|\s*|\s*\|$/g, "").trim() || "";
-            return [code, desc];
-          }).filter(pair => pair[0]);
-          if (list.length === 0) {
-            displayDiagnosisNoResults(t, typeId);
-            return;
-          }
-          displayDiagnosisResults(list, typeId);
-        } else if (typeId === "loinc") {
+        if (typeId === "loinc") {
           const apiUrl = `${LOINC_URL}?terms=${encodeURIComponent(t)}&maxList=15`;
           let data = await fetchJson(apiUrl, { signal: diagnosisSearchController.signal });
           if (!data) data = await fetchJsonWithProxy(apiUrl);
@@ -1594,7 +1698,7 @@
       }
       setLoading(true);
       try {
-        const result = await lookup(apiKey, code);
+        const result = await Promise.race([lookup(apiKey, code), lookupTimeout(LOOKUP_TIMEOUT_MS)]);
         if (result) {
           showMessage("Found.", "success");
           renderResult(result, apiKey, code);
@@ -1603,7 +1707,11 @@
           showMessage(`Could not find ${typeLabel} code: ${code}. Check the code and try again.`, "error");
         }
       } catch (e) {
-        showMessage("Network or CORS error. Try running the page from a local server (e.g. <code>python -m http.server</code>) or check your connection.", "error");
+        if (e && e.message === "LOOKUP_TIMEOUT") {
+          showMessage("Lookup timed out after 5 seconds. Please try again or check your connection.", "error");
+        } else {
+          showMessage("Network or CORS error. Try running the page from a local server (e.g. <code>python -m http.server</code>) or check your connection.", "error");
+        }
       } finally {
         setLoading(false);
       }
@@ -1615,3 +1723,4 @@
   </script>
 </body>
 </html>
+c
