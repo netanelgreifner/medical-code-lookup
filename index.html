@@ -1,317 +1,232 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Code Lookup — ICD-10 · SNOMED CT · LOINC · ATC · RxCUI · CPT · HCPCS · NDC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } }
+    }
+  </script>
   <style>
-    :root {
-      --primary: #6B46E5;
-      --primary-hover: #5A3BC4;
-      --lavender: #E8E3FC;
-      --bg: #F9FAFB;
-      --white: #FFFFFF;
-      --text: #2D2654;
-      --text-muted: #6B7280;
-      --border: #E5E7EB;
-      --badge-teal-bg: #CCFBF1;
-      --badge-teal-fg: #0F766E;
+    .text-gradient{background:linear-gradient(135deg,#c4b5fd 0%,#a78bfa 40%,#7c3aed 70%,#ec4899 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    :root{
+      --c-card:#fff;--c-card-border:#e5e7eb;--c-card-shadow:rgba(139,92,246,.07);
+      --c-text:#1e1b4b;--c-text-muted:#6b7280;--c-text-dim:#9ca3af;
+      --c-primary:#8b5cf6;--c-primary-soft:rgba(139,92,246,.08);--c-accent:#7c3aed;
+      --c-badge-bg:rgba(139,92,246,.1);--c-badge-fg:#7c3aed;
+      --c-badge-teal-bg:rgba(20,184,166,.1);--c-badge-teal-fg:#0d9488;
+      --c-err-bg:#fef2f2;--c-err-fg:#b91c1c;--c-err-border:#fecaca;
+      --c-ok-bg:#f0fdf4;--c-ok-fg:#166534;--c-ok-border:#bbf7d0;
+      --c-warn-bg:#fffbeb;--c-warn-fg:#92400e;--c-warn-border:#fde68a;
+      --c-input-bg:#fff;--c-input-border:#d1d5db;--c-input-fg:#1e1b4b;
+      --c-chip-bg:rgba(139,92,246,.07);--c-chip-border:rgba(139,92,246,.18);--c-chip-fg:#7c3aed;
+      --c-pill-bg:#f3f4f6;--c-pill-border:#e5e7eb;--c-pill-fg:#6b7280;
+      --c-pill-on-bg:#8b5cf6;--c-pill-on-fg:#fff;--c-pill-on-border:#8b5cf6;
+      --c-si-bg:#fff;--c-si-border:#e5e7eb;
+      --c-orb-opacity:0;--c-canvas-opacity:0;
     }
-    * { box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      margin: 0;
-      padding: 1rem;
-      min-height: 100vh;
+    html.dark{
+      --c-card:rgba(255,255,255,.06);--c-card-border:rgba(255,255,255,.1);--c-card-shadow:rgba(0,0,0,.25);
+      --c-text:#f1eeff;--c-text-muted:#9b8ec4;--c-text-dim:#6b5e8a;
+      --c-primary:#a78bfa;--c-primary-soft:rgba(167,139,250,.15);--c-accent:#7c3aed;
+      --c-badge-bg:rgba(167,139,250,.15);--c-badge-fg:#a78bfa;
+      --c-badge-teal-bg:rgba(20,184,166,.15);--c-badge-teal-fg:#5eead4;
+      --c-err-bg:rgba(239,68,68,.15);--c-err-fg:#fca5a5;--c-err-border:rgba(239,68,68,.3);
+      --c-ok-bg:rgba(16,185,129,.15);--c-ok-fg:#6ee7b7;--c-ok-border:rgba(16,185,129,.3);
+      --c-warn-bg:rgba(251,191,36,.1);--c-warn-fg:#fcd34d;--c-warn-border:rgba(251,191,36,.2);
+      --c-input-bg:rgba(255,255,255,.06);--c-input-border:rgba(255,255,255,.1);--c-input-fg:#f1eeff;
+      --c-chip-bg:rgba(167,139,250,.12);--c-chip-border:rgba(167,139,250,.25);--c-chip-fg:#a78bfa;
+      --c-pill-bg:rgba(255,255,255,.06);--c-pill-border:rgba(255,255,255,.1);--c-pill-fg:#9b8ec4;
+      --c-pill-on-bg:#8b5cf6;--c-pill-on-fg:#fff;--c-pill-on-border:#8b5cf6;
+      --c-si-bg:rgba(255,255,255,.04);--c-si-border:rgba(255,255,255,.1);
+      --c-orb-opacity:.3;--c-canvas-opacity:1;
     }
-    .container {
-      max-width: 720px;
-      margin: 0 auto;
-      padding: 1rem 0 2rem;
-    }
-    .header {
-      background: linear-gradient(135deg, #6B46E5 0%, #8B5CF6 100%);
-      color: white;
-      padding: 1.5rem 1.75rem;
-      border-radius: 12px;
-      margin-bottom: 2rem;
-      box-shadow: 0 4px 14px rgba(107, 70, 229, 0.25);
-    }
-    .header h1 { margin: 0; font-size: 1.75rem; }
-    .header p { margin: 0.35rem 0 0 0; color: var(--lavender); font-size: 0.9rem; }
-    .section { margin-bottom: 1.5rem; }
-    .section label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem; }
-    .radio-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 0.25rem;
-    }
-    .radio-group input { display: none; }
-    .radio-group label {
-      display: inline-block;
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
-      background: var(--lavender);
-      color: #4A31A8;
-      font-size: 0.9rem;
-      cursor: pointer;
-      margin: 0;
-      border: 2px solid transparent;
-    }
-    .radio-group input:checked + label {
-      background: var(--white);
-      color: var(--primary);
-      border-color: var(--primary);
-      box-shadow: 0 2px 8px rgba(107, 70, 229, 0.2);
-    }
-    .input-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      align-items: center;
-    }
-    .input-row input[type="text"] {
-      flex: 1;
-      min-width: 200px;
-      padding: 0.75rem 1rem;
-      font-size: 1rem;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--white);
-    }
-    .input-row input[type="text"]:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(107, 70, 229, 0.15);
-    }
-    .btn {
-      padding: 0.75rem 1.5rem;
-      font-size: 1rem;
-      font-weight: 600;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      background: var(--primary);
-      color: white;
-    }
-    .btn:hover:not(:disabled) { background: var(--primary-hover); }
-    .btn:disabled { opacity: 0.7; cursor: not-allowed; }
-    .examples { margin-top: 0.75rem; }
-    .examples span { font-size: 0.85rem; color: var(--text-muted); margin-right: 0.5rem; }
-    .chip {
-      display: inline-block;
-      background: var(--lavender);
-      color: #4A31A8;
-      padding: 0.35rem 0.75rem;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      margin: 0.25rem 0.25rem 0 0;
-      cursor: pointer;
-      border: none;
-      font-family: inherit;
-    }
-    .chip:hover { background: #D5CCF7; }
-    .result-card {
-      background: var(--white);
-      border-radius: 12px;
-      border-left: 4px solid var(--primary);
-      box-shadow: 0 4px 12px rgba(107, 70, 229, 0.1);
-      padding: 1.5rem 1.75rem;
-      margin: 1.5rem 0;
-    }
-    .result-card .display-name {
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: var(--text);
-      margin: 0 0 0.75rem 0;
-      line-height: 1.3;
-    }
-    .result-card .badges { margin-bottom: 0.75rem; }
-    .result-card .badge {
-      display: inline-block;
-      background: var(--lavender);
-      color: #4A31A8;
-      padding: 0.25rem 0.6rem;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      margin-right: 0.5rem;
-    }
-    .result-card .badge-teal { background: var(--badge-teal-bg); color: var(--badge-teal-fg); }
-    .result-card .source-label {
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: #8B7AB8;
-      text-transform: uppercase;
-      margin: 1rem 0 0.25rem 0;
-    }
-    .result-card .source-value { color: #374151; font-size: 0.9rem; margin: 0; }
-    .message { padding: 1rem; border-radius: 8px; margin: 1rem 0; }
-    .message.error { background: #FEE2E2; color: #B91C1C; }
-    .message.success { background: #D1FAE5; color: #065F46; }
-    .spinner { display: inline-block; width: 1rem; height: 1rem; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 0.5rem; vertical-align: middle; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .aside {
-      margin-top: 2rem;
-      padding: 1.25rem;
-      background: var(--white);
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      font-size: 0.9rem;
-      color: var(--text-muted);
-    }
-    .aside h3 { margin: 0 0 0.5rem 0; font-size: 1rem; color: var(--text); }
-    .aside ul { margin: 0.5rem 0; padding-left: 1.25rem; }
-    .aside p { margin: 0.5rem 0; }
-    #resultContainer { min-height: 2rem; }
-    .info-banner {
-      margin-top: 0.75rem;
-      padding: 0.75rem 1rem;
-      background: rgba(107, 70, 229, 0.06);
-      border-radius: 8px;
-      border-left: 3px solid var(--primary);
-      font-size: 0.8125rem;
-      line-height: 1.45;
-      color: var(--text-muted);
-      opacity: 1;
-      transition: opacity 0.25s ease;
-    }
-    .info-banner.fade-in { animation: infoBannerFade 0.3s ease; }
-    @keyframes infoBannerFade {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    .conversion-section { margin-top: 24px; }
-    .conversion-divider { border: none; border-top: 1px solid #E8E3FC; margin: 0 0 16px 0; }
-    .conversion-heading {
-      text-align: center; font-size: 14px; color: #8B7AB8; text-transform: uppercase;
-      letter-spacing: 1px; margin: 0 0 16px 0; font-weight: 400;
-    }
-    .conversion-buttons {
-      display: flex; flex-wrap: wrap; gap: 16px; justify-content: center;
-    }
-    .conversion-buttons .chip { min-height: 44px; min-width: 44px; }
-    .conversion-result-card {
-      background: var(--white); border-radius: 12px; border-left: 4px solid var(--primary);
-      box-shadow: 0 4px 12px rgba(107, 70, 229, 0.1); padding: 1.5rem 1.75rem; margin-top: 16px;
-    }
-    .conversion-result-card .conv-title { font-size: 1rem; font-weight: 600; color: var(--text); margin: 0 0 0.75rem 0; }
-    .conversion-result-card .conv-original { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem; }
-    .conversion-result-card .conv-result { font-size: 0.95rem; margin: 0.75rem 0; }
-    .conversion-result-card .conv-list { list-style: none; padding: 0; margin: 0.5rem 0; }
-    .conversion-result-card .conv-list li {
-      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
-      gap: 0.5rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border);
-    }
-    .conversion-result-card .conv-list li:last-child { border-bottom: none; }
-    .conversion-result-card .conv-list li .conv-item-content { flex: 1; min-width: 0; }
-    .conversion-result-card .conv-item-code { font-size: 16px; font-weight: 700; color: #2D2654; margin: 0 0 4px 0; }
-    .conversion-result-card .conv-item-name { font-size: 14px; color: #6B7280; margin: 0 0 2px 0; }
-    .conversion-result-card .conv-item-context { font-size: 13px; font-style: italic; color: #9CA3AF; margin: 0; }
-    .conversion-result-card .conv-list li { align-items: flex-start; padding: 16px 0; }
-    .conversion-result-card .conv-actions { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.75rem; }
-    .conversion-result-card .btn-small {
-      padding: 0.5rem 1rem; font-size: 0.875rem; border-radius: 20px; border: none; cursor: pointer;
-      background: var(--lavender); color: #4A31A8; font-weight: 600; font-family: inherit;
-    }
-    .conversion-result-card .btn-small:hover { background: #D5CCF7; }
-    .conversion-empty { background: #FEF3C7; color: #92400E; padding: 1rem; border-radius: 8px; margin-top: 16px; font-size: 0.9rem; }
-    .conversion-error { background: #FEE2E2; color: #B91C1C; padding: 1rem; border-radius: 8px; margin-top: 16px; font-size: 0.9rem; }
-    .conversion-error .retry-btn { margin-top: 0.5rem; }
-    .copied-toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--text); color: white; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.875rem; z-index: 100; opacity: 0; transition: opacity 0.2s; }
-    .copied-toast.show { opacity: 1; animation: fadeToast 2s ease; }
-    @keyframes fadeToast { 0%, 20% { opacity: 1; } 100% { opacity: 0; } }
-    @media (max-width: 480px) { .conversion-buttons { flex-direction: column; } .conversion-buttons .chip { width: 100%; } }
-    .search-by-name-section {
-      background: var(--white);
-      border: 2px solid var(--lavender);
-      border-radius: 16px;
-      padding: 32px;
-      margin-bottom: 2rem;
-      transition: opacity 0.3s ease, margin 0.3s ease;
-      overflow: hidden;
-    }
-    .search-by-name-section h2 { font-size: 1.35rem; color: var(--text); margin: 0 0 0.5rem 0; }
-    .search-by-name-section .subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 1.25rem; }
-    .search-input-container { position: relative; margin-bottom: 1rem; }
-    #diagnosisNameInput {
-      width: 100%; padding: 14px 44px 14px 16px; font-size: 1rem;
-      border: 2px solid var(--border); border-radius: 12px; background: var(--white);
-      box-sizing: border-box;
-    }
-    #diagnosisNameInput:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(107, 70, 229, 0.1); }
-    #clearSearchBtn {
-      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-      background: var(--border); border: none; border-radius: 50%; width: 28px; height: 28px;
-      cursor: pointer; font-size: 16px; color: var(--text-muted); line-height: 1;
-    }
-    #clearSearchBtn:hover { background: #D1D5DB; color: var(--text); }
-    .example-searches { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 1.25rem; }
-    .example-searches .label { color: #8B7AB8; font-size: 13px; font-weight: 500; }
-    .example-btn {
-      background: #F3F4F6; border: 1px solid var(--border); padding: 6px 12px; border-radius: 16px;
-      font-size: 13px; color: var(--primary); cursor: pointer; font-family: inherit;
-    }
-    .example-btn:hover { background: var(--lavender); border-color: var(--primary); }
-    .search-results { max-height: 500px; overflow-y: auto; margin-top: 1.25rem; }
-    .diagnosis-result-item {
-      background: var(--white); border: 2px solid var(--lavender); border-left: 4px solid var(--primary);
-      border-radius: 12px; padding: 16px; margin-bottom: 12px; cursor: pointer;
-      transition: box-shadow 0.2s, transform 0.2s;
-    }
-    .diagnosis-result-item:hover {
-      background: #FAFAFE; border-color: var(--primary); transform: translateX(4px);
-      box-shadow: 0 4px 12px rgba(107, 70, 229, 0.15);
-    }
-    .diagnosis-result-code { font-size: 18px; font-weight: 700; color: #6B46E5; margin-bottom: 8px; letter-spacing: 0.5px; }
-    .diagnosis-result-desc { font-size: 15px; font-weight: 400; color: #374151; line-height: 1.5; margin: 0; }
-    .search-loading-state { text-align: center; padding: 40px; color: var(--text-muted); }
-    .search-loading-state .search-spinner {
-      display: block; width: 40px; height: 40px; margin: 0 auto 16px;
-      border: 3px solid var(--lavender); border-top-color: var(--primary); border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-    .search-no-results { text-align: center; padding: 40px; color: var(--text-muted); }
-    .search-no-results-icon { font-size: 48px; margin-bottom: 16px; }
-    .search-results-count { font-size: 14px; font-weight: 500; color: #6B7280; margin-bottom: 16px; }
-    @media (max-width: 768px) {
-      .search-by-name-section { padding: 20px; }
-      .search-results { max-height: 400px; }
-      .diagnosis-result-item { padding: 12px; }
-    }
-    .app-footer {
-      margin-top: 2rem;
-      padding: 20px 1rem;
-      width: 100%;
-      text-align: center;
-      font-size: 13px;
-      line-height: 1.6;
-      font-weight: 400;
-      color: #8B7AB8;
-      background: #FAFAFE;
-      border-top: 1px solid #E8E3FC;
-    }
-    .app-footer .footer-title { font-size: 14px; margin-bottom: 4px; }
-    .app-footer .footer-credits { font-size: 13px; }
+    #bgCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:var(--c-canvas-opacity);transition:opacity .5s}
+    .bg-gradient-orbs{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:hidden}
+    .bg-gradient-orbs .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:var(--c-orb-opacity);transition:opacity .5s;animation:orbFloat 20s ease-in-out infinite}
+    .bg-gradient-orbs .orb:nth-child(1){width:600px;height:600px;background:#7C3AED;top:-10%;left:-5%;animation-duration:25s}
+    .bg-gradient-orbs .orb:nth-child(2){width:500px;height:500px;background:#6D28D9;bottom:-10%;right:-5%;animation-delay:-5s;animation-duration:30s}
+    .bg-gradient-orbs .orb:nth-child(3){width:400px;height:400px;background:#4C1D95;top:40%;left:50%;animation-delay:-10s;animation-duration:22s}
+    @keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1)}25%{transform:translate(40px,-30px) scale(1.05)}50%{transform:translate(-20px,20px) scale(.95)}75%{transform:translate(30px,40px) scale(1.02)}}
+    .spinner{display:inline-block;width:1.1rem;height:1.1rem;border:2px solid rgba(255,255,255,.2);border-top-color:var(--c-primary);border-radius:50%;animation:spin .8s linear infinite;margin-right:.5rem;vertical-align:middle}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .radio-group{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.5rem}
+    .radio-group input{display:none}
+    .radio-group label{display:inline-flex;align-items:center;padding:.6rem 1.15rem;border-radius:50px;background:var(--c-pill-bg);color:var(--c-pill-fg);font-size:.9rem;font-weight:500;cursor:pointer;border:1px solid var(--c-pill-border);transition:all .25s}
+    .radio-group label:hover{border-color:var(--c-accent);color:var(--c-primary)}
+    .radio-group input:checked+label{background:var(--c-pill-on-bg);color:var(--c-pill-on-fg);border-color:var(--c-pill-on-border);box-shadow:0 0 16px rgba(139,92,246,.3)}
+    .info-banner{margin-top:.75rem;padding:.85rem 1.1rem;background:var(--c-primary-soft);border-radius:10px;border-left:3px solid var(--c-accent);font-size:.875rem;line-height:1.5;color:var(--c-text-muted);transition:opacity .25s}
+    .info-banner.fade-in{animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .input-row{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center}
+    .input-row input[type="text"]{flex:1;min-width:220px;padding:.9rem 1.15rem;font-size:1.05rem;font-family:inherit;font-weight:500;border:1px solid var(--c-input-border);border-radius:12px;background:var(--c-input-bg);color:var(--c-input-fg);transition:all .25s}
+    .input-row input[type="text"]::placeholder{color:var(--c-text-dim)}
+    .input-row input[type="text"]:focus{outline:none;border-color:var(--c-primary);box-shadow:0 0 0 3px rgba(139,92,246,.15)}
+    .btn{padding:.9rem 1.75rem;font-size:1rem;font-weight:600;font-family:inherit;border:none;border-radius:12px;cursor:pointer;color:#fff;background:linear-gradient(135deg,#7c3aed,#8b5cf6);box-shadow:0 4px 14px rgba(124,58,237,.3);transition:all .25s}
+    .btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,58,237,.4)}
+    .btn:active:not(:disabled){transform:translateY(0)}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .chip{display:inline-block;padding:.4rem .9rem;border-radius:50px;font-size:.85rem;font-family:inherit;font-weight:500;background:var(--c-chip-bg);color:var(--c-chip-fg);border:1px solid var(--c-chip-border);cursor:pointer;margin:.25rem .2rem 0 0;transition:all .2s}
+    .chip:hover{background:var(--c-primary-soft);border-color:var(--c-primary);transform:translateY(-1px)}
+    .examples{margin-top:.75rem}
+    .examples span{font-size:.875rem;color:var(--c-text-dim);margin-right:.4rem}
+    .result-card{background:var(--c-card);border-radius:16px;border:1px solid var(--c-card-border);border-left:4px solid var(--c-accent);box-shadow:0 8px 24px var(--c-card-shadow);padding:1.75rem 2rem;margin:1.5rem 0;animation:slideUp .35s ease}
+    @keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    .result-card .display-name{font-size:1.75rem;font-weight:700;color:var(--c-text);margin:0 0 .75rem 0;line-height:1.3}
+    .result-card .badges{margin-bottom:.75rem}
+    .result-card .badge{display:inline-block;padding:.25rem .65rem;border-radius:6px;font-size:.78rem;font-weight:600;margin-right:.4rem;background:var(--c-badge-bg);color:var(--c-badge-fg)}
+    .result-card .badge-teal{background:var(--c-badge-teal-bg);color:var(--c-badge-teal-fg)}
+    .result-card .source-label{font-size:.7rem;font-weight:600;color:var(--c-text-dim);text-transform:uppercase;letter-spacing:1px;margin:1rem 0 .25rem 0}
+    .result-card .source-value{color:var(--c-text-muted);font-size:.9rem;margin:0}
+    .message{padding:1rem 1.15rem;border-radius:12px;margin:1rem 0;font-size:.9rem;border:1px solid transparent}
+    .message.error{background:var(--c-err-bg);color:var(--c-err-fg);border-color:var(--c-err-border)}
+    .message.success{background:var(--c-ok-bg);color:var(--c-ok-fg);border-color:var(--c-ok-border)}
+    .conversion-section{margin-top:24px}
+    .conversion-divider{border:none;border-top:1px solid var(--c-card-border);margin:0 0 16px 0}
+    .conversion-heading{text-align:center;font-size:.75rem;color:var(--c-text-dim);text-transform:uppercase;letter-spacing:2px;margin:0 0 16px 0;font-weight:500}
+    .conversion-buttons{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+    .conversion-buttons .chip{min-height:44px;min-width:44px}
+    .conversion-result-card{background:var(--c-card);border-radius:16px;border:1px solid var(--c-card-border);border-left:4px solid var(--c-accent);box-shadow:0 8px 24px var(--c-card-shadow);padding:1.75rem 2rem;margin-top:16px;animation:slideUp .35s ease}
+    .conversion-result-card .conv-title{font-size:1.05rem;font-weight:600;color:var(--c-text);margin:0 0 .75rem 0}
+    .conversion-result-card .conv-original{font-size:.9rem;color:var(--c-text-muted);margin-bottom:.5rem}
+    .conversion-result-card .conv-result{font-size:.95rem;margin:.75rem 0;color:var(--c-text)}
+    .conversion-result-card .conv-list{list-style:none;padding:0;margin:.5rem 0}
+    .conversion-result-card .conv-list li{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:.5rem;padding:14px 0;border-bottom:1px solid var(--c-card-border)}
+    .conversion-result-card .conv-list li:last-child{border-bottom:none}
+    .conversion-result-card .conv-list li .conv-item-content{flex:1;min-width:0}
+    .conversion-result-card .conv-item-code{font-size:1rem;font-weight:700;color:var(--c-primary);margin:0 0 4px 0}
+    .conversion-result-card .conv-item-name{font-size:.9rem;color:var(--c-text-muted);margin:0 0 2px 0}
+    .conversion-result-card .conv-item-context{font-size:.8rem;font-style:italic;color:var(--c-text-dim);margin:0}
+    .conversion-result-card .conv-actions{margin-top:1rem;display:flex;flex-wrap:wrap;gap:.6rem}
+    .conversion-result-card .btn-small{padding:.5rem 1rem;font-size:.85rem;border-radius:50px;border:1px solid var(--c-chip-border);cursor:pointer;background:var(--c-chip-bg);color:var(--c-chip-fg);font-weight:600;font-family:inherit;transition:all .2s}
+    .conversion-result-card .btn-small:hover{background:var(--c-primary-soft);border-color:var(--c-primary)}
+    .conversion-empty{background:var(--c-warn-bg);color:var(--c-warn-fg);border:1px solid var(--c-warn-border);padding:1rem;border-radius:12px;margin-top:16px;font-size:.9rem}
+    .conversion-error{background:var(--c-err-bg);color:var(--c-err-fg);border:1px solid var(--c-err-border);padding:1rem;border-radius:12px;margin-top:16px;font-size:.9rem}
+    .conversion-error .retry-btn{margin-top:.5rem}
+    .copied-toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--c-accent);color:#fff;padding:.65rem 1.25rem;border-radius:50px;font-size:.875rem;font-weight:600;z-index:100;opacity:0;transition:opacity .2s;box-shadow:0 4px 16px rgba(124,58,237,.4)}
+    .copied-toast.show{opacity:1;animation:fadeToast 2s ease}
+    @keyframes fadeToast{0%,20%{opacity:1}100%{opacity:0}}
+    .search-by-name-section{background:var(--c-card);border:1px solid var(--c-card-border);border-radius:16px;padding:1.75rem 2rem;margin-bottom:1.75rem;box-shadow:0 4px 16px var(--c-card-shadow);transition:opacity .3s ease;overflow:hidden}
+    html.dark .search-by-name-section{backdrop-filter:blur(16px)}
+    .search-by-name-section h2{font-size:1.3rem;font-weight:700;color:var(--c-text);margin:0 0 .4rem 0}
+    .search-by-name-section .subtitle{color:var(--c-text-muted);font-size:.9rem;margin-bottom:1.25rem}
+    .search-input-container{position:relative;margin-bottom:1rem}
+    #diagnosisNameInput{width:100%;padding:.9rem 44px .9rem 1.15rem;font-size:1rem;font-family:inherit;font-weight:500;border:1px solid var(--c-input-border);border-radius:12px;background:var(--c-input-bg);color:var(--c-input-fg);box-sizing:border-box;transition:all .25s}
+    #diagnosisNameInput::placeholder{color:var(--c-text-dim)}
+    #diagnosisNameInput:focus{outline:none;border-color:var(--c-primary);box-shadow:0 0 0 3px rgba(139,92,246,.15)}
+    #clearSearchBtn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:var(--c-pill-bg);border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:14px;color:var(--c-text-muted);line-height:1;transition:all .2s}
+    #clearSearchBtn:hover{background:var(--c-primary-soft);color:var(--c-text)}
+    .example-searches{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:1.25rem}
+    .example-searches .label{color:var(--c-text-dim);font-size:.8rem;font-weight:500}
+    .example-btn{background:var(--c-chip-bg);border:1px solid var(--c-chip-border);padding:.4rem .85rem;border-radius:50px;font-size:.8rem;color:var(--c-chip-fg);cursor:pointer;font-family:inherit;font-weight:500;transition:all .2s}
+    .example-btn:hover{background:var(--c-primary-soft);border-color:var(--c-primary)}
+    .search-results{max-height:500px;overflow-y:auto;margin-top:1.25rem}
+    .search-results::-webkit-scrollbar{width:5px}
+    .search-results::-webkit-scrollbar-track{background:transparent}
+    .search-results::-webkit-scrollbar-thumb{background:var(--c-card-border);border-radius:3px}
+    .diagnosis-result-item{background:var(--c-si-bg);border:1px solid var(--c-si-border);border-left:4px solid var(--c-accent);border-radius:12px;padding:1.1rem;margin-bottom:10px;cursor:pointer;transition:all .2s}
+    .diagnosis-result-item:hover{border-color:var(--c-primary);transform:translateX(4px);box-shadow:0 4px 16px rgba(139,92,246,.12)}
+    .diagnosis-result-code{font-size:1.05rem;font-weight:700;color:var(--c-primary);margin-bottom:6px;letter-spacing:.3px}
+    .diagnosis-result-desc{font-size:.9rem;color:var(--c-text-muted);line-height:1.5;margin:0}
+    .search-loading-state{text-align:center;padding:40px;color:var(--c-text-muted)}
+    .search-loading-state .search-spinner{display:block;width:40px;height:40px;margin:0 auto 16px;border:3px solid var(--c-card-border);border-top-color:var(--c-primary);border-radius:50%;animation:spin .8s linear infinite}
+    .search-no-results{text-align:center;padding:40px;color:var(--c-text-muted)}
+    .search-no-results-icon{font-size:48px;margin-bottom:16px}
+    .search-results-count{font-size:.85rem;font-weight:500;color:var(--c-text-dim);margin-bottom:12px}
+    /* ---- Auto-Detect styling ---- */
+    .radio-group label[for="r_auto"]{font-weight:600;color:var(--c-accent);border-color:rgba(124,58,237,.35)}
+    .radio-group label[for="r_auto"]:hover{border-color:var(--c-accent);box-shadow:0 2px 10px rgba(124,58,237,.2);transform:translateY(-1px)}
+    .radio-group input#r_auto:checked+label{background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border-color:transparent;box-shadow:0 0 20px rgba(124,58,237,.45)}
+    .detect-progress{background:var(--c-card);border:1px solid var(--c-card-border);border-radius:16px;padding:1.5rem 1.75rem;margin:1rem 0;box-shadow:0 4px 16px var(--c-card-shadow);animation:slideUp .35s ease}
+    html.dark .detect-progress{backdrop-filter:blur(12px)}
+    .detect-progress h3{font-size:1.1rem;font-weight:700;color:var(--c-text);margin:0 0 1rem 0;display:flex;align-items:center;gap:.5rem}
+    .detect-progress .detect-spinner{display:inline-block;width:1rem;height:1rem;border:2px solid rgba(139,92,246,.2);border-top-color:var(--c-primary);border-radius:50%;animation:spin .8s linear infinite}
+    .detect-progress .system-row{display:flex;align-items:center;gap:.6rem;padding:.45rem 0;font-size:.9rem;color:var(--c-text-muted)}
+    .detect-progress .system-row.checking{color:var(--c-primary);font-weight:600}
+    .detect-progress .system-row.checking .sys-icon{display:inline-block;width:.85rem;height:.85rem;border:2px solid rgba(139,92,246,.2);border-top-color:var(--c-primary);border-radius:50%;animation:spin .8s linear infinite}
+    .detect-progress .system-row.fail .sys-icon{color:#ef4444}
+    .detect-progress .system-row.success .sys-icon{color:#22c55e;font-weight:700}
+    .detect-progress .system-row.pending{opacity:.4}
+    .detect-banner{background:linear-gradient(135deg,rgba(34,197,94,.1),rgba(16,185,129,.08));border:1px solid rgba(34,197,94,.25);border-radius:12px;padding:1rem 1.25rem;margin:0 0 .75rem 0;animation:slideUp .35s ease}
+    html.dark .detect-banner{background:linear-gradient(135deg,rgba(34,197,94,.12),rgba(16,185,129,.1));border-color:rgba(34,197,94,.3)}
+    .detect-banner .banner-title{font-size:1rem;font-weight:700;color:#16a34a;margin:0 0 .25rem 0;display:flex;align-items:center;gap:.4rem}
+    html.dark .detect-banner .banner-title{color:#4ade80}
+    .detect-banner .banner-sub{font-size:.8rem;color:var(--c-text-muted);margin:0}
+    .detect-fail{background:var(--c-err-bg);border:1px solid var(--c-err-border);border-radius:16px;padding:1.5rem 1.75rem;margin:1rem 0;animation:slideUp .35s ease}
+    .detect-fail h3{font-size:1.1rem;font-weight:700;color:var(--c-err-fg);margin:0 0 1rem 0}
+    .detect-fail .system-row{display:flex;align-items:center;gap:.6rem;padding:.3rem 0;font-size:.9rem;color:var(--c-err-fg);opacity:.8}
+    /* ---- Educational info card ---- */
+    .edu-card{background:var(--c-card);border:1px solid var(--c-card-border);border-radius:16px;padding:1.5rem 1.75rem;margin:1rem 0 0 0;box-shadow:0 4px 16px var(--c-card-shadow);animation:slideUp .35s ease}
+    html.dark .edu-card{backdrop-filter:blur(12px)}
+    .edu-card-header{display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid var(--c-card-border)}
+    .edu-card-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0}
+    .edu-card-header-text{flex:1;min-width:0}
+    .edu-card-header-text h4{font-size:1.1rem;font-weight:700;color:var(--c-text);margin:0 0 .2rem 0}
+    .edu-card-header-text p{font-size:.8rem;color:var(--c-text-dim);margin:0;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+    .edu-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.25rem}
+    .edu-card-stat{padding:.75rem 1rem;border-radius:10px;background:var(--c-primary-soft);border:1px solid var(--c-chip-border)}
+    .edu-card-stat .edu-stat-label{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--c-text-dim);margin:0 0 .3rem 0}
+    .edu-card-stat .edu-stat-value{font-size:.875rem;font-weight:600;color:var(--c-text);margin:0}
+    .edu-card-purpose{padding:1rem;border-radius:10px;background:var(--c-primary-soft);border:1px solid var(--c-chip-border);margin-bottom:1rem}
+    .edu-card-purpose .edu-stat-label{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--c-text-dim);margin:0 0 .4rem 0}
+    .edu-card-purpose p{font-size:.875rem;color:var(--c-text-muted);margin:0;line-height:1.5}
+    .edu-card-why{display:flex;align-items:flex-start;gap:.6rem;padding:1rem;border-radius:10px;background:linear-gradient(135deg,rgba(124,58,237,.08),rgba(236,72,153,.06));border:1px solid rgba(139,92,246,.15)}
+    html.dark .edu-card-why{background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(236,72,153,.08));border-color:rgba(139,92,246,.2)}
+    .edu-card-why i{color:var(--c-primary);margin-top:2px;flex-shrink:0}
+    .edu-card-why p{font-size:.875rem;color:var(--c-text);margin:0;line-height:1.5;font-style:italic}
+    .edu-toggle{display:inline-flex;align-items:center;gap:.4rem;margin-top:1rem;padding:.5rem 1rem;border-radius:50px;background:var(--c-chip-bg);color:var(--c-chip-fg);border:1px solid var(--c-chip-border);cursor:pointer;font-size:.8rem;font-weight:600;font-family:inherit;transition:all .2s}
+    .edu-toggle:hover{background:var(--c-primary-soft);border-color:var(--c-primary)}
+    .edu-toggle i{font-size:.7rem;transition:transform .3s}
+    .edu-toggle.open i{transform:rotate(180deg)}
+    @media(max-width:640px){.edu-card-grid{grid-template-columns:1fr}.input-row{flex-direction:column}.input-row input[type="text"]{min-width:100%}.conversion-buttons{flex-direction:column}.conversion-buttons .chip{width:100%}.search-by-name-section{padding:1.25rem}}
   </style>
 </head>
-<body>
-  <div class="container">
-    <header class="header">
-      <h1>🔍 Code Lookup</h1>
-      <p>ICD-10 · SNOMED CT · LOINC · ATC · RxCUI · CPT · HCPCS · NDC — Official display names from trusted sources</p>
+<body class="font-sans min-h-screen bg-white dark:bg-[#0B0A1A] text-gray-900 dark:text-gray-100 transition-colors duration-300">
+  <div class="bg-gradient-orbs"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
+  <canvas id="bgCanvas"></canvas>
+
+  <div class="relative z-10 max-w-[920px] mx-auto px-5 sm:px-8 py-6 pb-10">
+    <header class="text-center pt-8 pb-8 mb-8 relative">
+      <button id="themeToggle" type="button" class="absolute top-4 right-0 w-10 h-10 rounded-full flex items-center justify-center bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-500 dark:text-purple-300 hover:bg-gray-200 dark:hover:bg-white/20 transition-all" aria-label="Toggle theme">
+        <i class="fa-solid fa-moon dark:hidden text-sm"></i>
+        <i class="fa-solid fa-sun hidden dark:inline text-sm"></i>
+      </button>
+      <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-3 text-gradient">Medical Code Lookup</h1>
+      <p class="text-sm sm:text-base text-gray-500 dark:text-purple-300/70 tracking-wide">ICD-10 · SNOMED CT · LOINC · ATC · RxCUI · CPT · HCPCS · NDC</p>
+      <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-0.5 bg-gradient-to-r from-transparent via-purple-500 to-transparent"></div>
     </header>
 
-    <div class="section">
-      <label>Code type</label>
+    <div class="mb-6">
+      <label class="block text-xs font-semibold uppercase tracking-[0.15em] mb-3 text-gray-400 dark:text-purple-300/60">Code Type</label>
       <div class="radio-group" id="codeTypeChips" role="radiogroup" aria-label="Code type"></div>
       <div class="info-banner" id="codeTypeDescription" aria-live="polite"></div>
+      <div id="eduCardContainer"></div>
     </div>
 
-    <section id="diagnosisSearchSection" class="search-by-name-section" aria-label="Search by diagnosis or clinical term" style="display: none;">
+    <div class="mb-6">
+      <label for="codeInput" class="block text-xs font-semibold uppercase tracking-[0.15em] mb-3 text-gray-400 dark:text-purple-300/60">Code</label>
+      <div class="input-row">
+        <input type="text" id="codeInput" placeholder="e.g. E11.9" autocomplete="off" aria-label="Code">
+        <button type="button" class="btn" id="lookupBtn"><i class="fa-solid fa-magnifying-glass mr-2 text-sm"></i>Lookup</button>
+      </div>
+      <div class="examples">
+        <span>Try:</span>
+        <span id="exampleChips"></span>
+      </div>
+    </div>
+
+    <div id="messageArea"></div>
+    <div id="resultContainer" class="min-h-[2rem]"></div>
+
+    <section id="diagnosisSearchSection" class="search-by-name-section" aria-label="Search by diagnosis or clinical term" style="display:none;">
       <h2>🔍 Search by Diagnosis Name</h2>
       <p class="subtitle" id="searchHint">Search ICD-10 codes by typing a condition or symptom (e.g., diabetes, headache, chest pain)</p>
       <div class="search-input-container">
@@ -335,48 +250,34 @@
       </div>
       <div id="searchResults" class="search-results" style="display:none;" role="listbox" aria-label="Search results"></div>
     </section>
-
-    <div class="section">
-      <label for="codeInput">Code</label>
-      <div class="input-row">
-        <input type="text" id="codeInput" placeholder="e.g. E11.9" autocomplete="off" aria-label="Code">
-        <button type="button" class="btn" id="lookupBtn">Lookup</button>
-      </div>
-      <div class="examples">
-        <span>Try:</span>
-        <span id="exampleChips"></span>
-      </div>
-    </div>
-
-    <div id="messageArea"></div>
-    <div id="resultContainer"></div>
     <div id="copiedToast" class="copied-toast" aria-live="polite" role="status">Copied!</div>
 
-    <aside class="aside">
-      <h3>About</h3>
-      <p>Look up medical and drug codes and get their <strong>official display names</strong> from authoritative APIs.</p>
-      <h3>How to use</h3>
-      <p>1. Select a code type. 2. Enter a code. 3. Click Lookup.</p>
-      <h3>API sources</h3>
-      <ul>
-        <li><strong>ICD-10:</strong> NLM Clinical Tables (ICD-10-CM), WHO (ICD-11)</li>
-        <li><strong>SNOMED CT:</strong> Snowstorm</li>
-        <li><strong>LOINC:</strong> NLM Clinical Tables</li>
-        <li><strong>ATC / RxCUI:</strong> NLM RxNorm</li>
-        <li><strong>CPT / HCPCS:</strong> AAPC (aapc.com)</li>
-        <li><strong>NDC:</strong> NLM RxNav API</li>
-      </ul>
-      <p id="historySection" style="display:none;"><strong>Recent:</strong> <span id="historyList"></span></p>
+    <aside class="mt-10 p-6 rounded-2xl bg-white dark:bg-white/[0.06] border border-gray-200 dark:border-white/10 shadow-sm dark:shadow-none dark:backdrop-blur-xl">
+      <h3 class="text-lg font-bold mb-2 text-gray-900 dark:text-white"><i class="fa-solid fa-circle-info text-purple-500 mr-2"></i>About</h3>
+      <p class="text-sm text-gray-500 dark:text-purple-300/70 mb-5">Look up medical and drug codes and get their <strong class="text-purple-600 dark:text-purple-400">official display names</strong> from authoritative APIs.</p>
+      <h3 class="text-sm font-bold mb-3 text-gray-900 dark:text-white uppercase tracking-wide"><i class="fa-solid fa-database text-purple-500 mr-2"></i>API Sources</h3>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 mb-5">
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-purple-500/20"><span class="text-xs font-bold text-purple-700 dark:text-purple-300">ICD-10</span><span class="text-[10px] text-gray-400 dark:text-purple-300/50">NLM / WHO</span></div>
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-purple-500/20"><span class="text-xs font-bold text-purple-700 dark:text-purple-300">SNOMED</span><span class="text-[10px] text-gray-400 dark:text-purple-300/50">Snowstorm</span></div>
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-purple-500/20"><span class="text-xs font-bold text-purple-700 dark:text-purple-300">LOINC</span><span class="text-[10px] text-gray-400 dark:text-purple-300/50">NLM</span></div>
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-purple-500/20"><span class="text-xs font-bold text-purple-700 dark:text-purple-300">ATC</span><span class="text-[10px] text-gray-400 dark:text-purple-300/50">RxNorm</span></div>
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-purple-500/20"><span class="text-xs font-bold text-purple-700 dark:text-purple-300">RxCUI</span><span class="text-[10px] text-gray-400 dark:text-purple-300/50">RxNorm</span></div>
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-purple-500/20"><span class="text-xs font-bold text-purple-700 dark:text-purple-300">CPT</span><span class="text-[10px] text-gray-400 dark:text-purple-300/50">AAPC</span></div>
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-purple-500/20"><span class="text-xs font-bold text-purple-700 dark:text-purple-300">HCPCS</span><span class="text-[10px] text-gray-400 dark:text-purple-300/50">NLM / AAPC</span></div>
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-purple-500/20"><span class="text-xs font-bold text-purple-700 dark:text-purple-300">NDC</span><span class="text-[10px] text-gray-400 dark:text-purple-300/50">RxNav</span></div>
+      </div>
+      <p id="historySection" style="display:none;" class="text-sm text-gray-500 dark:text-purple-300/60"><strong class="text-purple-600 dark:text-purple-400">Recent:</strong> <span id="historyList"></span></p>
     </aside>
   </div>
 
-  <footer class="app-footer">
-    <div class="footer-title">Medical Code Lookup Tool</div>
-    <div class="footer-credits">© 2026 Netanel Greifner, MD, MHA</div>
+  <footer class="relative z-10 mt-8 py-6 text-center border-t border-gray-200 dark:border-white/10">
+    <div class="text-sm font-semibold text-gray-400 dark:text-purple-300/50 mb-1">Medical Code Lookup Tool</div>
+    <div class="text-xs text-gray-400 dark:text-purple-300/40">&copy; 2026 Netanel Greifner, MD, MHA</div>
   </footer>
 
-  <script>
+<script>
     const CODE_TYPES = [
+      { id: "auto", label: "\ud83d\udd0d Auto-Detect", description: "Don\u2019t know the code type? Enter any medical code and we\u2019ll identify it for you automatically." },
       { id: "icd", label: "ICD-10", description: "International Classification of Diseases, 10th revision. Used for diagnoses, billing, and statistics (ICD-10-CM)." },
       { id: "snomed", label: "SNOMED CT", description: "Comprehensive clinical terminology used for detailed electronic health records." },
       { id: "cpt", label: "CPT", description: "Current Procedural Terminology. Used for reporting medical procedures and services." },
@@ -386,7 +287,107 @@
       { id: "rxcui", label: "RxCUI", description: "RxNorm Concept Unique Identifier. Standard for clinical drug ingredients and forms." },
       { id: "atc", label: "ATC", description: "Anatomical Therapeutic Chemical. Classifies drugs by organ system and therapeutic properties." }
     ];
-    const CODE_TYPE_TO_API = { icd: "ICD", snomed: "SNOMED", cpt: "CPT", hcpcs: "HCPCS", loinc: "LOINC", ndc: "NDC", rxcui: "RXCUI", atc: "ATC" };
+    const CODE_TYPE_TO_API = { auto: "AUTO", icd: "ICD", snomed: "SNOMED", cpt: "CPT", hcpcs: "HCPCS", loinc: "LOINC", ndc: "NDC", rxcui: "RXCUI", atc: "ATC" };
+
+    const CODE_SYSTEM_INFO = {
+      ICD: {
+        icon: "fa-solid fa-hospital",
+        iconBg: "background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff",
+        fullName: "International Classification of Diseases, 10th Revision",
+        shortLabel: "ICD-10-CM",
+        maintainer: "World Health Organization (WHO)",
+        maintainerNote: "US clinical modification maintained by CDC & CMS",
+        established: "1990 (ICD-10); US adopted 2015",
+        purpose: "A universal diagnostic coding system that translates every disease, disorder, injury, and health condition into a standardized alphanumeric code. It is the global language of medicine for epidemiology and billing.",
+        useToday: "Required on virtually every medical claim, hospital record, and death certificate worldwide. It drives insurance reimbursement, public health surveillance, and clinical research.",
+        whyMatters: "This is the code your doctor records when they make a diagnosis — and what your insurance company sees to decide whether to cover your treatment."
+      },
+      SNOMED: {
+        icon: "fa-solid fa-brain",
+        iconBg: "background:linear-gradient(135deg,#0891b2,#06b6d4);color:#fff",
+        fullName: "Systematized Nomenclature of Medicine — Clinical Terms",
+        shortLabel: "SNOMED CT",
+        maintainer: "SNOMED International",
+        maintainerNote: "Managed by a non-profit with 40+ member countries",
+        established: "2002 (merged from SNOMED RT + UK Clinical Terms)",
+        purpose: "The most comprehensive clinical terminology in the world, with over 350,000 concepts. It captures clinical detail far beyond what billing codes allow — symptoms, findings, procedures, body structures, and more.",
+        useToday: "The backbone of modern Electronic Health Records (EHRs). It enables clinical decision support, quality measurement, and interoperable health data exchange across systems and borders.",
+        whyMatters: "When your doctor types clinical notes into their computer, SNOMED CT is often the hidden language that makes those notes structured, searchable, and shareable between hospitals."
+      },
+      CPT: {
+        icon: "fa-solid fa-user-doctor",
+        iconBg: "background:linear-gradient(135deg,#059669,#34d399);color:#fff",
+        fullName: "Current Procedural Terminology",
+        shortLabel: "CPT",
+        maintainer: "American Medical Association (AMA)",
+        maintainerNote: "Updated annually; proprietary — requires a license to use",
+        established: "1966",
+        purpose: "A standardized system of 5-digit codes that describe every medical, surgical, and diagnostic service a physician can perform. It is the universal language for communicating 'what was done' to a patient.",
+        useToday: "Required on virtually every outpatient medical claim in the United States. It directly determines how much physicians and hospitals are paid by insurance companies.",
+        whyMatters: "Every time you visit a doctor, the services you receive are translated into CPT codes — these codes determine exactly how much your provider gets reimbursed and what shows up on your bill."
+      },
+      HCPCS: {
+        icon: "fa-solid fa-wheelchair",
+        iconBg: "background:linear-gradient(135deg,#d97706,#fbbf24);color:#fff",
+        fullName: "Healthcare Common Procedure Coding System",
+        shortLabel: "HCPCS Level II",
+        maintainer: "Centers for Medicare & Medicaid Services (CMS)",
+        maintainerNote: "Supplements CPT; updated quarterly",
+        established: "1978",
+        purpose: "Extends CPT to cover items and services not included in physician procedures — such as ambulance rides, durable medical equipment (wheelchairs, CPAP machines), prosthetics, orthotics, and supplies.",
+        useToday: "Required for Medicare, Medicaid, and most insurance billing for non-physician services and medical supplies. Essential for home health, DME suppliers, and outpatient facilities.",
+        whyMatters: "If you've ever gotten a wheelchair, hearing aid, insulin pump, or home oxygen — HCPCS is the code system that made it possible for insurance to cover it."
+      },
+      LOINC: {
+        icon: "fa-solid fa-flask-vial",
+        iconBg: "background:linear-gradient(135deg,#dc2626,#f87171);color:#fff",
+        fullName: "Logical Observation Identifiers Names and Codes",
+        shortLabel: "LOINC",
+        maintainer: "Regenstrief Institute",
+        maintainerNote: "Free and open; updated semi-annually",
+        established: "1994",
+        purpose: "A universal standard for identifying lab tests and clinical observations. Instead of every hospital having its own name for 'blood glucose,' LOINC gives it one universal code (2345-7) that works everywhere.",
+        useToday: "Required by US federal regulations for electronic lab reporting. Used by 98% of large US hospitals and adopted in 180+ countries for lab interoperability.",
+        whyMatters: "When your blood test results transfer seamlessly from the lab to your doctor's screen to your patient portal — LOINC is the reason those results are understood correctly everywhere."
+      },
+      NDC: {
+        icon: "fa-solid fa-barcode",
+        iconBg: "background:linear-gradient(135deg,#4f46e5,#818cf8);color:#fff",
+        fullName: "National Drug Code",
+        shortLabel: "NDC",
+        maintainer: "U.S. Food and Drug Administration (FDA)",
+        maintainerNote: "Maintained via the FDA Drug Registration & Listing System",
+        established: "1972",
+        purpose: "A unique 10- or 11-digit identifier assigned to every drug product sold in the US. It encodes three pieces of information: the manufacturer (labeler), the specific product (drug, strength, form), and the package size.",
+        useToday: "Printed on every drug package sold in the US. Used by pharmacies for dispensing, by hospitals for inventory tracking, and by insurers for formulary management and claims processing.",
+        whyMatters: "The barcode your pharmacist scans when filling your prescription is an NDC — it ensures you get exactly the right drug, strength, and package every time."
+      },
+      RXCUI: {
+        icon: "fa-solid fa-pills",
+        iconBg: "background:linear-gradient(135deg,#9333ea,#c084fc);color:#fff",
+        fullName: "RxNorm Concept Unique Identifier",
+        shortLabel: "RxCUI",
+        maintainer: "National Library of Medicine (NLM)",
+        maintainerNote: "Part of RxNorm; updated monthly; free to use",
+        established: "2004",
+        purpose: "A normalized identifier that links the many names for the same drug. Whether a system calls it 'acetaminophen,' 'Tylenol,' or 'APAP 500mg tablet,' RxCUI maps them all to one concept so systems can communicate.",
+        useToday: "The standard drug vocabulary for US EHR systems, e-prescribing, drug interaction databases, and clinical decision support. It bridges the gap between brand names, generics, and clinical drug formulations.",
+        whyMatters: "When your doctor's system warns about a dangerous drug interaction or your pharmacy substitutes a generic — RxNorm and RxCUI are working behind the scenes to keep you safe."
+      },
+      ATC: {
+        icon: "fa-solid fa-capsules",
+        iconBg: "background:linear-gradient(135deg,#0284c7,#38bdf8);color:#fff",
+        fullName: "Anatomical Therapeutic Chemical Classification",
+        shortLabel: "ATC",
+        maintainer: "WHO Collaborating Centre for Drug Statistics (Norway)",
+        maintainerNote: "Updated annually; used alongside DDD (Defined Daily Dose)",
+        established: "1976",
+        purpose: "A hierarchical 5-level system that classifies every drug by where it acts in the body and what it does therapeutically. Each level narrows from organ system → therapeutic group → pharmacological group → chemical group → specific substance.",
+        useToday: "The international gold standard for drug utilization research and pharmacoepidemiology. Used by governments and WHO to compare drug consumption across countries and track prescribing trends.",
+        whyMatters: "When researchers compare how different countries prescribe antibiotics, or when a health system analyzes its drug spending patterns — ATC is the classification that makes those comparisons possible."
+      }
+    };
+
     const TTY_LABELS = {
       BN: "Brand Name", IN: "Generic Name", SCD: "Clinical Drug",
       SBD: "Branded Drug", GPCK: "Clinical Pack", BPCK: "Branded Pack",
@@ -395,6 +396,7 @@
       SCDC: "Clinical Drug Component", SBDC: "Branded Drug Component"
     };
     const EXAMPLES = {
+      AUTO: ["E11.9", "73211009", "99213", "J0171", "2160-0"],
       ICD: ["E11.9", "I10", "J18.9"],
       SNOMED: ["38341003", "73211009", "233604007"],
       LOINC: ["2345-7", "6690-2", "2160-0"],
@@ -486,6 +488,81 @@
 
     const ATC_LEVEL_LABELS = { 1: "Level 1 – Anatomical main group", 3: "Level 2 – Therapeutic subgroup", 4: "Level 3 – Pharmacological subgroup", 5: "Level 4 – Chemical subgroup", 7: "Level 5 – Chemical substance" };
 
+    function buildEduCard(codeType) {
+      const info = CODE_SYSTEM_INFO[codeType];
+      if (!info) return "";
+      return `
+        <button type="button" class="edu-toggle" id="eduToggleBtn">
+          <i class="fa-solid fa-graduation-cap"></i> Learn about ${escapeHtml(info.shortLabel)}
+          <i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div id="eduCardContent" style="display:none;">
+          <div class="edu-card">
+            <div class="edu-card-header">
+              <div class="edu-card-icon" style="${info.iconBg}"><i class="${info.icon}"></i></div>
+              <div class="edu-card-header-text">
+                <h4>${escapeHtml(info.fullName)}</h4>
+                <p>${escapeHtml(info.shortLabel)}</p>
+              </div>
+            </div>
+            <div class="edu-card-grid">
+              <div class="edu-card-stat">
+                <p class="edu-stat-label"><i class="fa-solid fa-building-columns" style="margin-right:4px"></i>Maintained by</p>
+                <p class="edu-stat-value">${escapeHtml(info.maintainer)}</p>
+              </div>
+              <div class="edu-card-stat">
+                <p class="edu-stat-label"><i class="fa-solid fa-calendar" style="margin-right:4px"></i>Established</p>
+                <p class="edu-stat-value">${escapeHtml(info.established)}</p>
+              </div>
+            </div>
+            <div class="edu-card-purpose">
+              <p class="edu-stat-label"><i class="fa-solid fa-bullseye" style="margin-right:4px"></i>Purpose</p>
+              <p>${escapeHtml(info.purpose)}</p>
+            </div>
+            <div class="edu-card-purpose" style="margin-bottom:1rem">
+              <p class="edu-stat-label"><i class="fa-solid fa-chart-line" style="margin-right:4px"></i>Use today</p>
+              <p>${escapeHtml(info.useToday)}</p>
+            </div>
+            <div class="edu-card-why">
+              <i class="fa-solid fa-lightbulb"></i>
+              <p>${escapeHtml(info.whyMatters)}</p>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function bindEduToggle() {
+      const btn = document.getElementById("eduToggleBtn");
+      const content = document.getElementById("eduCardContent");
+      if (!btn || !content) return;
+      btn.addEventListener("click", function() {
+        const open = content.style.display !== "none";
+        content.style.display = open ? "none" : "block";
+        btn.classList.toggle("open", !open);
+      });
+    }
+
+    function updateEduCardForType(overrideKey) {
+      let codeType;
+      if (overrideKey) {
+        codeType = overrideKey.toUpperCase();
+      } else {
+        const selected = document.querySelector('input[name="codeType"]:checked');
+        const val = selected ? selected.value : CODE_TYPES[0].id;
+        if (val === "auto") {
+          // Show nothing for auto until detection happens
+          const container = document.getElementById("eduCardContainer");
+          if (container) container.innerHTML = "";
+          return;
+        }
+        codeType = val.toUpperCase();
+      }
+      const container = document.getElementById("eduCardContainer");
+      if (!container) return;
+      container.innerHTML = buildEduCard(codeType);
+      bindEduToggle();
+    }
+
     function renderResult(data, codeType, code) {
       const name = escapeHtml(data.display_name || "—");
       const codeLabel = escapeHtml(data.code_label || "Code");
@@ -523,24 +600,32 @@
 
     function setLoading(loading) {
       const btn = document.getElementById("lookupBtn");
+      const selected = document.querySelector('input[name="codeType"]:checked');
+      const isAuto = selected && selected.value === "auto";
       if (loading) {
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner"></span> Looking up...';
+        btn.innerHTML = '<span class="spinner"></span> ' + (isAuto ? 'Detecting...' : 'Looking up...');
       } else {
         btn.disabled = false;
-        btn.textContent = "Lookup";
+        btn.innerHTML = '<i class="fa-solid fa-magnifying-glass mr-2 text-sm"></i>' + (isAuto ? 'Detect & Lookup' : 'Lookup');
       }
     }
 
     const LOOKUP_TIMEOUT_MS = 8000;
+    const AUTO_DETECT_TIMEOUT_MS = 3000;
+    let _autoDetectSignal = null; // AbortSignal active during auto-detect calls only
     function lookupTimeout(ms) {
       return new Promise((_, reject) => setTimeout(() => reject(new Error("LOOKUP_TIMEOUT")), ms));
     }
 
     /** Fetch with timeout to avoid hanging. Returns null on timeout or error. */
     async function fetchWithTimeout(url, ms, opts = {}) {
+      if (_autoDetectSignal && _autoDetectSignal.aborted) return null;
       const ctrl = new AbortController();
       const id = setTimeout(() => ctrl.abort(), ms);
+      if (_autoDetectSignal) {
+        _autoDetectSignal.addEventListener('abort', () => ctrl.abort(), { once: true });
+      }
       try {
         const res = await fetch(url, { ...opts, signal: ctrl.signal });
         clearTimeout(id);
@@ -553,7 +638,9 @@
 
     async function fetchJson(url, opts = {}) {
       try {
-        const res = await fetch(url, { ...opts, headers: { Accept: "application/json", ...(opts.headers || {}) } });
+        if (_autoDetectSignal && _autoDetectSignal.aborted) return null;
+        const signal = opts.signal || _autoDetectSignal || undefined;
+        const res = await fetch(url, { ...opts, signal, headers: { Accept: "application/json", ...(opts.headers || {}) } });
         if (!res.ok) return null;
         return await res.json();
       } catch (_) {
@@ -573,11 +660,14 @@
     }
 
     async function fetchJsonWithProxy(url) {
+      if (_autoDetectSignal && _autoDetectSignal.aborted) return null;
       let data = await fetchJson(url);
       if (data !== null) return data;
+      if (_autoDetectSignal && _autoDetectSignal.aborted) return null;
       const encoded = encodeURIComponent(url);
+      const sig = _autoDetectSignal || undefined;
       try {
-        const res = await fetch(CORS_ALLORIGINS_GET + encoded, { ...PROXY_OPTS, headers: { Accept: "application/json" } });
+        const res = await fetch(CORS_ALLORIGINS_GET + encoded, { ...PROXY_OPTS, headers: { Accept: "application/json" }, signal: sig });
         if (res.ok) {
           const wrap = await res.json();
           if (wrap && wrap.contents != null) {
@@ -586,8 +676,9 @@
           }
         }
       } catch (_) {}
+      if (_autoDetectSignal && _autoDetectSignal.aborted) return null;
       try {
-        const res = await fetch(CORS_PROXY + encoded, { ...PROXY_OPTS, headers: { Accept: "application/json" } });
+        const res = await fetch(CORS_PROXY + encoded, { ...PROXY_OPTS, headers: { Accept: "application/json" }, signal: sig });
         if (!res.ok) return null;
         return await res.json();
       } catch (_) {
@@ -941,14 +1032,15 @@
           const matchIndex = codes.findIndex(c => String(c).trim().toUpperCase() === code);
           if (matchIndex !== -1) {
             let displayName = "";
-            if (matchIndex < displayRows.length && displayRows[matchIndex]) {
-              const row = displayRows[matchIndex];
-              displayName = Array.isArray(row) && row[1] != null ? String(row[1]).trim() : (row ? String(row).trim() : "");
-            }
-            if (!displayName && extraFields && typeof extraFields === "object") {
+            // Prefer long_desc (full description) over short display column
+            if (extraFields && typeof extraFields === "object") {
               const longDesc = extraFields.long_desc;
               if (Array.isArray(longDesc) && longDesc[matchIndex] != null) displayName = String(longDesc[matchIndex]).trim();
               else if (longDesc != null) displayName = String(longDesc).trim();
+            }
+            if (!displayName && matchIndex < displayRows.length && displayRows[matchIndex]) {
+              const row = displayRows[matchIndex];
+              displayName = Array.isArray(row) && row[1] != null ? String(row[1]).trim() : (row ? String(row).trim() : "");
             }
             if (!displayName && extraFields && typeof extraFields === "object") {
               const shortDesc = extraFields.short_desc;
@@ -1529,6 +1621,141 @@
       return await fetchIcd(code);
     }
 
+    // ---- Auto-Detect Logic ----
+    const DETECT_SYSTEMS = [
+      { key: "ICD", label: "ICD-10", fn: fetchIcd },
+      { key: "SNOMED", label: "SNOMED CT", fn: fetchSnomed },
+      { key: "CPT", label: "CPT", fn: fetchCpt },
+      { key: "HCPCS", label: "HCPCS", fn: fetchHcpcs },
+      { key: "LOINC", label: "LOINC", fn: fetchLoinc },
+      { key: "NDC", label: "NDC", fn: fetchNdc },
+      { key: "RXCUI", label: "RxCUI", fn: fetchRxcui },
+      { key: "ATC", label: "ATC", fn: fetchAtc }
+    ];
+
+    function getProbableSystems(code) {
+      const c = code.trim().toUpperCase();
+      const candidates = [];
+      if (/^[A-TV-Z]\d{2,}\.?\d*$/.test(c)) candidates.push("ICD");
+      if (/^\d{5}$/.test(c) || /^\d{4}[A-Z]$/.test(c)) candidates.push("CPT");
+      if (/^[A-CEGHJ-VX]\d{4}$/.test(c)) candidates.push("HCPCS");
+      if (/^\d{6,18}$/.test(c)) candidates.push("SNOMED");
+      if (/^\d+-\d$/.test(c)) candidates.push("LOINC");
+      if (/^\d{4,5}-\d{3,4}-\d{1,2}$/.test(c) || /^\d{10,11}$/.test(c)) candidates.push("NDC");
+      if (/^\d{3,7}$/.test(c)) candidates.push("RXCUI");
+      if (/^[A-Z]\d{2}[A-Z]{0,2}\d{0,2}$/.test(c)) candidates.push("ATC");
+      return candidates;
+    }
+
+    function getOrderedSystems(code) {
+      const probable = getProbableSystems(code);
+      if (probable.length > 0) {
+        const rest = DETECT_SYSTEMS.filter(s => !probable.includes(s.key));
+        const first = probable.map(k => DETECT_SYSTEMS.find(s => s.key === k)).filter(Boolean);
+        return [...first, ...rest];
+      }
+      return [...DETECT_SYSTEMS];
+    }
+
+    function renderDetectProgress(systems, statuses) {
+      const rows = systems.map((sys, i) => {
+        const st = statuses[i] || "pending";
+        let icon = "";
+        if (st === "checking") icon = '<span class="sys-icon"></span>';
+        else if (st === "fail") icon = '<span class="sys-icon">\u274c</span>';
+        else if (st === "success") icon = '<span class="sys-icon">\u2705</span>';
+        else icon = '<span style="width:.85rem;display:inline-block"></span>';
+        const extra = st === "success" ? " Match found!" : "";
+        return `<div class="system-row ${st}">${icon} <span>${escapeHtml(sys.label)}${extra}</span></div>`;
+      }).join("");
+      return `<div class="detect-progress"><h3><span class="detect-spinner"></span> Detecting code type\u2026</h3>${rows}</div>`;
+    }
+
+    function renderDetectFail(systems) {
+      const rows = systems.map(sys =>
+        `<div class="system-row"><span>\u274c</span> <span>${escapeHtml(sys.label)}</span></div>`
+      ).join("");
+      return `<div class="detect-fail"><h3>\u274c Code not recognized</h3><p style="font-size:.9rem;margin:0 0 1rem 0;color:var(--c-err-fg)">No match found across ICD-10, SNOMED CT, CPT, HCPCS, LOINC, NDC, RxCUI, or ATC. Please verify the code and try again.</p>${rows}</div>`;
+    }
+
+    function renderDetectBanner(detectedLabel, detectedId) {
+      return `<div class="detect-banner"><p class="banner-title">\u2705 Detected: ${escapeHtml(detectedLabel)}</p><p class="banner-sub">This code was identified as ${escapeHtml(detectedLabel)}. You can also use the <strong>${escapeHtml(detectedLabel)}</strong> tab directly.</p></div>`;
+    }
+
+    async function autoDetectLookup(code) {
+      const systems = getOrderedSystems(code);
+      const statuses = systems.map(() => "pending");
+      const container = document.getElementById("resultContainer");
+      container.innerHTML = renderDetectProgress(systems, statuses);
+
+      for (let i = 0; i < systems.length; i++) {
+        statuses[i] = "checking";
+        container.innerHTML = renderDetectProgress(systems, statuses);
+        const ctrl = new AbortController();
+        _autoDetectSignal = ctrl.signal;
+        const timer = setTimeout(() => ctrl.abort(), AUTO_DETECT_TIMEOUT_MS);
+        let result = null;
+        try {
+          result = await systems[i].fn(code);
+        } catch (_) {}
+        clearTimeout(timer);
+        _autoDetectSignal = null;
+        if (result && result.display_name && result.display_name !== "\u2014") {
+            statuses[i] = "success";
+            container.innerHTML = renderDetectProgress(systems, statuses);
+            await new Promise(r => setTimeout(r, 600));
+            const detectedKey = systems[i].key;
+            const detectedLabel = systems[i].label;
+            const detectedTabId = Object.entries(CODE_TYPE_TO_API).find(([k, v]) => v === detectedKey);
+            const tabId = detectedTabId ? detectedTabId[0] : "icd";
+            // Render detection banner + full result
+            const bannerHtml = renderDetectBanner(detectedLabel, tabId);
+            container.innerHTML = bannerHtml;
+            const name = escapeHtml(result.display_name || "\u2014");
+            const codeLabel = escapeHtml(result.code_label || "Code");
+            const codeVal = escapeHtml(result.code_value || "\u2014");
+            const source = escapeHtml(result.source || "\u2014");
+            const category = result.category ? escapeHtml(result.category) : "";
+            const rxcui = result.rxcui ? escapeHtml(result.rxcui) : "";
+            const atcClassName = result.atc_class_name ? escapeHtml(result.atc_class_name) : "";
+            const atcClassBlock = atcClassName ? `<p class="source-label">ATC Classification</p><p class="source-value">${atcClassName}</p>` : "";
+            const tty = result.term_type;
+            const ttyLabel = tty ? (TTY_LABELS[tty.toUpperCase()] || tty) : null;
+            const ttyBadge = ttyLabel ? `<span class="badge badge-teal">${escapeHtml(ttyLabel)}</span>` : "";
+            const atcLevelLabel = detectedKey === "ATC" && result.code_value ? (ATC_LEVEL_LABELS[result.code_value.length] || null) : null;
+            const atcLevelBadge = atcLevelLabel ? `<span class="badge badge-teal">${escapeHtml(atcLevelLabel)}</span>` : "";
+            const categoryBlock = category ? `<p class="source-label">Category</p><p class="source-value">${category}</p>` : "";
+            const rxcuiBlock = rxcui ? `<p class="source-label">RxCUI</p><p class="source-value">${rxcui}</p>` : "";
+            const isDrug = detectedKey === "RXCUI" || detectedKey === "NDC" || detectedKey === "ATC";
+            if (isDrug) lastDrugResult = { data: result, codeType: detectedKey, code: code || result.code_value };
+            else lastDrugResult = null;
+            const conversionHtml = isDrug ? buildConversionSection(detectedKey, result.display_name, codeVal) : "";
+            container.innerHTML = bannerHtml + `
+              <div class="result-card">
+                <p class="display-name">${name}</p>
+                <div class="badges">
+                  <span class="badge">${codeLabel}: ${codeVal}</span>${ttyBadge}${atcLevelBadge}
+                </div>
+                ${categoryBlock}
+                ${rxcuiBlock}
+                ${atcClassBlock}
+                <p class="source-label">Source</p>
+                <p class="source-value">${source}</p>
+              </div>${conversionHtml}`;
+            if (isDrug) bindConversionButtons();
+            // Update edu card to match detected type
+            updateEduCardForType(detectedKey);
+            addToHistory(detectedLabel, code, result.display_name);
+            return result;
+        }
+        statuses[i] = "fail";
+        container.innerHTML = renderDetectProgress(systems, statuses);
+      }
+      // No match found
+      container.innerHTML = renderDetectFail(systems);
+      return null;
+    }
+
     function renderCodeTypeChips() {
       const container = document.getElementById("codeTypeChips");
       const descEl = document.getElementById("codeTypeDescription");
@@ -1556,9 +1783,11 @@
           clearMessage();
           document.getElementById("resultContainer").innerHTML = "";
           handleDiagnosisSearchVisibility();
+          updateEduCardForType();
         });
       });
       handleDiagnosisSearchVisibility();
+      updateEduCardForType();
     }
 
     function clearSearch() {
@@ -1628,7 +1857,7 @@
       const typeId = selected ? selected.value : "icd";
       const section = document.getElementById("diagnosisSearchSection");
       if (!section) return;
-      if (typeId === "icd" || typeId === "loinc") {
+      if ((typeId === "icd" || typeId === "loinc") && typeId !== "auto") {
         section.style.display = "block";
         updateSearchSectionLabels(typeId);
       } else {
@@ -1639,11 +1868,13 @@
 
     function updateExamples() {
       const selected = document.querySelector('input[name="codeType"]:checked');
-      const typeId = selected ? selected.value : "icd";
+      const typeId = selected ? selected.value : "auto";
       const apiKey = CODE_TYPE_TO_API[typeId];
       const list = apiKey ? (EXAMPLES[apiKey] || []) : [];
       const input = document.getElementById("codeInput");
       const container = document.getElementById("exampleChips");
+      const lookupBtn = document.getElementById("lookupBtn");
+      const isAuto = typeId === "auto";
       container.innerHTML = list.map(c =>
         `<button type="button" class="chip" data-code="${c.replace(/"/g, "&quot;")}">${c.replace(/</g, "&lt;")}</button>`
       ).join("");
@@ -1651,10 +1882,16 @@
         btn.addEventListener("click", () => {
           input.value = btn.dataset.code;
           input.focus();
-          document.getElementById("lookupBtn").click();
+          lookupBtn.click();
         });
       });
-      input.placeholder = list[0] ? `e.g. ${list[0]}` : "Enter code";
+      if (isAuto) {
+        input.placeholder = "Enter any medical code (e.g., E11.9, 73211009, 99213, J0171)";
+        lookupBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass mr-2 text-sm"></i>Detect & Lookup';
+      } else {
+        input.placeholder = list[0] ? `e.g. ${list[0]}` : "Enter code";
+        lookupBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass mr-2 text-sm"></i>Lookup';
+      }
     }
 
     renderCodeTypeChips();
@@ -1801,7 +2038,7 @@
 
     document.getElementById("lookupBtn").addEventListener("click", async () => {
       const selected = document.querySelector('input[name="codeType"]:checked');
-      const typeId = selected ? selected.value : "icd";
+      const typeId = selected ? selected.value : "auto";
       const apiKey = CODE_TYPE_TO_API[typeId];
       let code = document.getElementById("codeInput").value.trim();
       const typeLabel = (CODE_TYPES.find(t => t.id === typeId) || {}).label || typeId;
@@ -1809,6 +2046,21 @@
       document.getElementById("resultContainer").innerHTML = "";
       if (!code) {
         showMessage("Please enter a code.", "error");
+        return;
+      }
+      // Auto-Detect mode
+      if (apiKey === "AUTO") {
+        setLoading(true);
+        try {
+          const result = await autoDetectLookup(code);
+          if (result) {
+            showMessage("Found.", "success");
+          }
+        } catch (e) {
+          showMessage("Network error during auto-detection. Please try again.", "error");
+        } finally {
+          setLoading(false);
+        }
         return;
       }
       if (apiKey === "HCPCS") {
@@ -1844,6 +2096,50 @@
       if (e.key === "Enter") document.getElementById("lookupBtn").click();
     });
   </script>
+  <script>
+  // Theme Toggle
+  (function(){
+    var toggle=document.getElementById('themeToggle');
+    var html=document.documentElement;
+    var saved=localStorage.getItem('theme');
+    if(saved==='light')html.classList.remove('dark');
+    else if(saved==='dark')html.classList.add('dark');
+    toggle.addEventListener('click',function(){
+      html.classList.toggle('dark');
+      localStorage.setItem('theme',html.classList.contains('dark')?'dark':'light');
+    });
+  })();
+  // Floating Particles
+  (function(){
+    var canvas=document.getElementById('bgCanvas');
+    var ctx=canvas.getContext('2d');
+    var particles=[];
+    var N=60;
+    function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight}
+    resize();window.addEventListener('resize',resize);
+    function create(){return{x:Math.random()*canvas.width,y:Math.random()*canvas.height,s:Math.random()*2.5+.5,vx:(Math.random()-.5)*.4,vy:(Math.random()-.5)*.4,o:Math.random()*.4+.1,p:Math.random()*Math.PI*2,ps:Math.random()*.02+.005}}
+    for(var i=0;i<N;i++)particles.push(create());
+    function draw(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      for(var i=0;i<particles.length;i++){
+        var p=particles[i];p.x+=p.vx;p.y+=p.vy;p.p+=p.ps;
+        var op=p.o*(.6+.4*Math.sin(p.p));
+        if(p.x<-10)p.x=canvas.width+10;if(p.x>canvas.width+10)p.x=-10;
+        if(p.y<-10)p.y=canvas.height+10;if(p.y>canvas.height+10)p.y=-10;
+        ctx.beginPath();ctx.arc(p.x,p.y,p.s,0,Math.PI*2);
+        ctx.fillStyle='rgba(167,139,250,'+op+')';ctx.fill();
+      }
+      for(var i=0;i<particles.length;i++){
+        for(var j=i+1;j<particles.length;j++){
+          var dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y;
+          var d=Math.sqrt(dx*dx+dy*dy);
+          if(d<150){ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.strokeStyle='rgba(124,58,237,'+(0.06*(1-d/150))+')';ctx.lineWidth=.5;ctx.stroke()}
+        }
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+  })();
+  </script>
 </body>
 </html>
-c
