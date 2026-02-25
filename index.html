@@ -238,6 +238,192 @@
     html.dark .ca-label-tag.ca-color-atc4{background:rgba(52,211,153,.12);color:#6ee7b7}
     .ca-label-tag.ca-color-atc5{background:rgba(245,158,11,.1);color:#d97706}
     html.dark .ca-label-tag.ca-color-atc5{background:rgba(251,191,36,.12);color:#fcd34d}
+.ca-seg-snomed{background:rgba(139,92,246,.18);color:#7c3aed;font-size:.85em}
+    html.dark .ca-seg-snomed{background:rgba(167,139,250,.2);color:#c4b5fd}
+    .snomed-chain-loading{display:flex;align-items:center;gap:.5rem;padding:.75rem 1rem;font-size:.88rem;color:var(--c-text-muted);animation:caFadeIn .4s ease both}
+    .snomed-chain-loading .spinner{width:16px;height:16px;border:2px solid var(--c-text-dim);border-top-color:var(--c-primary);border-radius:50%;animation:spin .6s linear infinite}
+    /* SNOMED tree view */
+    .snomed-tree-info{display:flex;align-items:flex-start;gap:.6rem;padding:.75rem 1rem;margin-bottom:1rem;border-radius:10px;background:linear-gradient(135deg,rgba(124,58,237,.06),rgba(59,130,246,.04));border:1px solid rgba(139,92,246,.12);font-size:.82rem;color:var(--c-text-muted);line-height:1.5}
+    html.dark .snomed-tree-info{background:linear-gradient(135deg,rgba(124,58,237,.1),rgba(59,130,246,.06));border-color:rgba(139,92,246,.2)}
+    .snomed-tree-info i{color:var(--c-primary);margin-top:2px;flex-shrink:0;font-size:.85rem}
+    .snomed-tree{display:flex;flex-direction:column;gap:0;margin-bottom:1rem;position:relative}
+    .snomed-tree-node{position:relative;padding-left:0;animation:caFadeIn .4s ease both}
+    .snomed-tree-node .stn-content{display:flex;align-items:flex-start;gap:.65rem;padding:.55rem .75rem;border-radius:10px;transition:background .15s;position:relative}
+    .snomed-tree-node .stn-content:hover{background:var(--c-primary-soft)}
+    .snomed-tree-node .stn-pip{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:5px;border:2px solid;box-sizing:border-box}
+    .snomed-tree-node .stn-text{flex:1;min-width:0}
+    .snomed-tree-node .stn-term{font-size:.92rem;font-weight:600;color:var(--c-text);display:block;line-height:1.35}
+    .snomed-tree-node .stn-id{font-size:.72rem;color:var(--c-text-dim);font-family:'Inter',monospace;letter-spacing:.3px;margin-top:1px;display:block}
+    .snomed-tree-node .stn-role{display:inline-block;padding:.1rem .45rem;border-radius:5px;font-size:.65rem;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:2px;width:fit-content}
+    .snomed-tree-node.stn-target .stn-content{background:linear-gradient(135deg,rgba(124,58,237,.08),rgba(236,72,153,.05));border:1.5px solid rgba(139,92,246,.2);border-radius:12px}
+    html.dark .snomed-tree-node.stn-target .stn-content{background:linear-gradient(135deg,rgba(124,58,237,.14),rgba(236,72,153,.08));border-color:rgba(167,139,250,.3)}
+    .snomed-tree-node.stn-target .stn-term{font-size:1rem;font-weight:700}
+    .snomed-tree-node.stn-target .stn-id{font-size:.78rem;color:var(--c-primary);font-weight:600}
+    .snomed-tree-node.stn-target .stn-pip{width:12px;height:12px;margin-top:4px}
+    .snomed-tree-arrow{display:flex;align-items:center;gap:.35rem;padding:0 0 0 4px;height:26px;position:relative}
+    .snomed-tree-arrow .sta-line{width:1px;height:100%;position:absolute;left:4px;top:0}
+    .snomed-tree-arrow .sta-label{font-size:.68rem;font-weight:600;color:var(--c-text-dim);letter-spacing:.3px;padding-left:20px;white-space:nowrap;display:flex;align-items:center;gap:.3rem}
+    .snomed-tree-arrow .sta-label i{font-size:.55rem;color:var(--c-text-dim);opacity:.7}
+    html.dark .snomed-tree-arrow .sta-label{color:var(--c-text-dim)}
+    .snomed-tree-indent{margin-left:16px}html.dark .ca-label-tag.ca-color-atc5{background:rgba(251,191,36,.12);color:#fcd34d}
+    .ca-seg-rx1{background:rgba(139,92,246,.18);color:#7c3aed}
+    html.dark .ca-seg-rx1{background:rgba(167,139,250,.2);color:#c4b5fd}
+    .ca-color-rx1{background:#7c3aed}
+    html.dark .ca-color-rx1{background:#a78bfa}
+    .ca-label-tag.ca-color-rx1{background:rgba(139,92,246,.12);color:#7c3aed}
+    html.dark .ca-label-tag.ca-color-rx1{background:rgba(167,139,250,.15);color:#c4b5fd}
+    .ca-seg-rx2{background:rgba(59,130,246,.15);color:#2563eb}
+    html.dark .ca-seg-rx2{background:rgba(96,165,250,.18);color:#93bbfd}
+    .ca-color-rx2{background:#3b82f6}
+    html.dark .ca-color-rx2{background:#60a5fa}
+    .ca-label-tag.ca-color-rx2{background:rgba(59,130,246,.1);color:#2563eb}
+    html.dark .ca-label-tag.ca-color-rx2{background:rgba(96,165,250,.13);color:#93bbfd}
+    .ca-seg-rx3{background:rgba(20,184,166,.14);color:#0d9488}
+    html.dark .ca-seg-rx3{background:rgba(45,212,191,.16);color:#5eead4}
+    .ca-color-rx3{background:#0d9488}
+    html.dark .ca-color-rx3{background:#2dd4bf}
+    .ca-label-tag.ca-color-rx3{background:rgba(20,184,166,.1);color:#0d9488}
+    html.dark .ca-label-tag.ca-color-rx3{background:rgba(45,212,191,.13);color:#5eead4}
+    .ca-seg-rx4{background:rgba(16,185,129,.14);color:#059669}
+    html.dark .ca-seg-rx4{background:rgba(52,211,153,.16);color:#6ee7b7}
+    .ca-color-rx4{background:#10b981}
+    html.dark .ca-color-rx4{background:#34d399}
+    .ca-label-tag.ca-color-rx4{background:rgba(16,185,129,.1);color:#059669}
+    html.dark .ca-label-tag.ca-color-rx4{background:rgba(52,211,153,.12);color:#6ee7b7}
+    .ca-seg-rx5{background:rgba(245,158,11,.15);color:#d97706}
+    html.dark .ca-seg-rx5{background:rgba(251,191,36,.16);color:#fcd34d}
+    .ca-color-rx5{background:#f59e0b}
+    html.dark .ca-color-rx5{background:#fbbf24}
+    .ca-label-tag.ca-color-rx5{background:rgba(245,158,11,.1);color:#d97706}
+    html.dark .ca-label-tag.ca-color-rx5{background:rgba(251,191,36,.12);color:#fcd34d}
+    .ca-rx-plus{display:flex;align-items:center;gap:.4rem;padding:.1rem 0 .1rem 1.7rem;color:var(--c-text-dim);font-size:.75rem;font-weight:600;opacity:.5}
+    .ca-rx-plus i{font-size:.6rem}
+    .rxcui-anatomy-info{display:flex;align-items:flex-start;gap:.6rem;padding:.75rem 1rem;margin-bottom:1rem;border-radius:10px;background:linear-gradient(135deg,rgba(124,58,237,.06),rgba(59,130,246,.04));border:1px solid rgba(139,92,246,.12);font-size:.82rem;color:var(--c-text-muted);line-height:1.5}
+    html.dark .rxcui-anatomy-info{background:linear-gradient(135deg,rgba(124,58,237,.1),rgba(59,130,246,.06));border-color:rgba(139,92,246,.2)}
+    .rxcui-anatomy-info i{color:var(--c-primary);margin-top:2px;flex-shrink:0;font-size:.85rem}
+    .ca-row.ca-rx-active{background:linear-gradient(135deg,rgba(124,58,237,.06),rgba(236,72,153,.03));border:1.5px solid rgba(139,92,246,.18);border-radius:12px;padding:.45rem .6rem}
+    html.dark .ca-row.ca-rx-active{background:linear-gradient(135deg,rgba(124,58,237,.1),rgba(236,72,153,.06));border-color:rgba(167,139,250,.25)}
+    .ca-rx-rxcui{font-size:.72rem;color:var(--c-text-dim);font-family:'Inter',monospace;letter-spacing:.3px;margin-top:1px}
+    .ca-row.ca-rx-empty .ca-row-title{color:var(--c-text-dim);font-style:italic;font-weight:400}
+    .ca-row.ca-rx-empty .ca-connector{opacity:.3}
+    .rxcui-anatomy-loading{display:flex;align-items:center;gap:.5rem;padding:.75rem 1rem;font-size:.88rem;color:var(--c-text-muted);animation:caFadeIn .4s ease both}
+    .rxcui-anatomy-loading .spinner{width:16px;height:16px;border:2px solid var(--c-text-dim);border-top-color:var(--c-primary);border-radius:50%;animation:spin .6s linear infinite}    .rxcui-anatomy-loading .spinner{width:16px;height:16px;border:2px solid var(--c-text-dim);border-top-color:var(--c-primary);border-radius:50%;animation:spin .6s linear infinite}
+    .ca-seg-loinc1{background:rgba(139,92,246,.18);color:#7c3aed}
+    html.dark .ca-seg-loinc1{background:rgba(167,139,250,.2);color:#c4b5fd}
+    .ca-color-loinc1{background:#7c3aed}
+    html.dark .ca-color-loinc1{background:#a78bfa}
+    .ca-label-tag.ca-color-loinc1{background:rgba(139,92,246,.12);color:#7c3aed}
+    html.dark .ca-label-tag.ca-color-loinc1{background:rgba(167,139,250,.15);color:#c4b5fd}
+    .ca-seg-loinc2{background:rgba(59,130,246,.15);color:#2563eb}
+    html.dark .ca-seg-loinc2{background:rgba(96,165,250,.18);color:#93bbfd}
+    .ca-color-loinc2{background:#3b82f6}
+    html.dark .ca-color-loinc2{background:#60a5fa}
+    .ca-label-tag.ca-color-loinc2{background:rgba(59,130,246,.1);color:#2563eb}
+    html.dark .ca-label-tag.ca-color-loinc2{background:rgba(96,165,250,.13);color:#93bbfd}
+    .ca-seg-loinc3{background:rgba(20,184,166,.14);color:#0d9488}
+    html.dark .ca-seg-loinc3{background:rgba(45,212,191,.16);color:#5eead4}
+    .ca-color-loinc3{background:#0d9488}
+    html.dark .ca-color-loinc3{background:#2dd4bf}
+    .ca-label-tag.ca-color-loinc3{background:rgba(20,184,166,.1);color:#0d9488}
+    html.dark .ca-label-tag.ca-color-loinc3{background:rgba(45,212,191,.13);color:#5eead4}
+    .ca-seg-loinc4{background:rgba(16,185,129,.14);color:#059669}
+    html.dark .ca-seg-loinc4{background:rgba(52,211,153,.16);color:#6ee7b7}
+    .ca-color-loinc4{background:#10b981}
+    html.dark .ca-color-loinc4{background:#34d399}
+    .ca-label-tag.ca-color-loinc4{background:rgba(16,185,129,.1);color:#059669}
+    html.dark .ca-label-tag.ca-color-loinc4{background:rgba(52,211,153,.12);color:#6ee7b7}
+    .ca-seg-loinc5{background:rgba(245,158,11,.15);color:#d97706}
+    html.dark .ca-seg-loinc5{background:rgba(251,191,36,.16);color:#fcd34d}
+    .ca-color-loinc5{background:#f59e0b}
+    html.dark .ca-color-loinc5{background:#fbbf24}
+    .ca-label-tag.ca-color-loinc5{background:rgba(245,158,11,.1);color:#d97706}
+    html.dark .ca-label-tag.ca-color-loinc5{background:rgba(251,191,36,.12);color:#fcd34d}
+    .ca-seg-loinc6{background:rgba(225,29,72,.12);color:#e11d48}
+    html.dark .ca-seg-loinc6{background:rgba(251,113,133,.14);color:#fb7185}
+    .ca-color-loinc6{background:#e11d48}
+    html.dark .ca-color-loinc6{background:#fb7185}
+    .ca-label-tag.ca-color-loinc6{background:rgba(225,29,72,.1);color:#e11d48}
+    html.dark .ca-label-tag.ca-color-loinc6{background:rgba(251,113,133,.12);color:#fb7185}
+    .loinc-anatomy-info{display:flex;align-items:flex-start;gap:.6rem;padding:.75rem 1rem;margin-bottom:1rem;border-radius:10px;background:linear-gradient(135deg,rgba(124,58,237,.06),rgba(59,130,246,.04));border:1px solid rgba(139,92,246,.12);font-size:.82rem;color:var(--c-text-muted);line-height:1.5}
+    html.dark .loinc-anatomy-info{background:linear-gradient(135deg,rgba(124,58,237,.1),rgba(59,130,246,.06));border-color:rgba(139,92,246,.2)}
+    .loinc-anatomy-info i{color:var(--c-primary);margin-top:2px;flex-shrink:0;font-size:.85rem}
+    .loinc-anatomy-loading{display:flex;align-items:center;gap:.5rem;padding:.75rem 1rem;font-size:.88rem;color:var(--c-text-muted);animation:caFadeIn .4s ease both}
+    .loinc-anatomy-loading .spinner{width:16px;height:16px;border:2px solid var(--c-text-dim);border-top-color:var(--c-primary);border-radius:50%;animation:spin .6s linear infinite}
+    .loinc-axis-expand{font-size:.78rem;color:var(--c-primary);font-weight:500;margin-left:.3rem}
+    .ca-row.loinc-empty .ca-row-title{color:var(--c-text-dim);font-style:italic;font-weight:400}
+    .ca-row.loinc-empty .ca-connector{opacity:.3}
+    .ca-seg-cpt1{background:rgba(139,92,246,.18);color:#7c3aed}
+    html.dark .ca-seg-cpt1{background:rgba(167,139,250,.2);color:#c4b5fd}
+    .ca-color-cpt1{color:#7c3aed}html.dark .ca-color-cpt1{color:#c4b5fd}
+    .ca-label-tag.ca-color-cpt1{background:rgba(139,92,246,.12);color:#7c3aed}
+    html.dark .ca-label-tag.ca-color-cpt1{background:rgba(167,139,250,.15);color:#c4b5fd}
+    .ca-seg-cpt2{background:rgba(59,130,246,.15);color:#2563eb}
+    html.dark .ca-seg-cpt2{background:rgba(96,165,250,.18);color:#93bbfd}
+    .ca-color-cpt2{color:#2563eb}html.dark .ca-color-cpt2{color:#93bbfd}
+    .ca-label-tag.ca-color-cpt2{background:rgba(59,130,246,.12);color:#2563eb}
+    html.dark .ca-label-tag.ca-color-cpt2{background:rgba(96,165,250,.15);color:#93bbfd}
+    .ca-seg-cpt3{background:rgba(20,184,166,.14);color:#0d9488}
+    html.dark .ca-seg-cpt3{background:rgba(45,212,191,.16);color:#5eead4}
+    .ca-color-cpt3{color:#0d9488}html.dark .ca-color-cpt3{color:#5eead4}
+    .ca-label-tag.ca-color-cpt3{background:rgba(20,184,166,.12);color:#0d9488}
+    html.dark .ca-label-tag.ca-color-cpt3{background:rgba(45,212,191,.15);color:#5eead4}
+    .ca-seg-cpt4{background:rgba(16,185,129,.14);color:#059669}
+    html.dark .ca-seg-cpt4{background:rgba(52,211,153,.16);color:#6ee7b7}
+    .ca-color-cpt4{color:#059669}html.dark .ca-color-cpt4{color:#6ee7b7}
+    .ca-label-tag.ca-color-cpt4{background:rgba(16,185,129,.12);color:#059669}
+    html.dark .ca-label-tag.ca-color-cpt4{background:rgba(52,211,153,.15);color:#6ee7b7}
+    .cpt-anatomy-info{display:flex;align-items:flex-start;gap:.6rem;padding:.75rem 1rem;margin-bottom:1rem;border-radius:10px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.12);font-size:.82rem;color:var(--c-text-muted);line-height:1.45}
+    html.dark .cpt-anatomy-info{background:rgba(167,139,250,.08);border-color:rgba(167,139,250,.15)}
+    .cpt-anatomy-info i{color:#7c3aed;margin-top:2px;flex-shrink:0}
+    html.dark .cpt-anatomy-info i{color:#c4b5fd}
+    .cpt-range-tag{display:inline-block;font-size:.68rem;font-weight:600;color:var(--c-text-dim);background:var(--c-bg-card);border:1px solid var(--c-border);padding:.1rem .4rem;border-radius:5px;margin-left:.45rem;font-family:'Inter',monospace;letter-spacing:.02em}
+    .ca-seg-hcpcs1{background:rgba(217,119,6,.15);color:#b45309}
+    html.dark .ca-seg-hcpcs1{background:rgba(251,191,36,.16);color:#fcd34d}
+    .ca-color-hcpcs1{color:#b45309}html.dark .ca-color-hcpcs1{color:#fcd34d}
+    .ca-label-tag.ca-color-hcpcs1{background:rgba(217,119,6,.1);color:#b45309}
+    html.dark .ca-label-tag.ca-color-hcpcs1{background:rgba(251,191,36,.12);color:#fcd34d}
+    .ca-seg-hcpcs2{background:rgba(234,88,12,.12);color:#c2410c}
+    html.dark .ca-seg-hcpcs2{background:rgba(251,146,60,.15);color:#fdba74}
+    .ca-color-hcpcs2{color:#c2410c}html.dark .ca-color-hcpcs2{color:#fdba74}
+    .ca-label-tag.ca-color-hcpcs2{background:rgba(234,88,12,.1);color:#c2410c}
+    html.dark .ca-label-tag.ca-color-hcpcs2{background:rgba(251,146,60,.12);color:#fdba74}
+    .ca-seg-hcpcs3{background:rgba(190,24,93,.1);color:#be185d}
+    html.dark .ca-seg-hcpcs3{background:rgba(244,114,182,.14);color:#f9a8d4}
+    .ca-color-hcpcs3{color:#be185d}html.dark .ca-color-hcpcs3{color:#f9a8d4}
+    .ca-label-tag.ca-color-hcpcs3{background:rgba(190,24,93,.08);color:#be185d}
+    html.dark .ca-label-tag.ca-color-hcpcs3{background:rgba(244,114,182,.1);color:#f9a8d4}
+    .ca-seg-hcpcs4{background:rgba(16,185,129,.14);color:#059669}
+    html.dark .ca-seg-hcpcs4{background:rgba(52,211,153,.16);color:#6ee7b7}
+    .ca-color-hcpcs4{color:#059669}html.dark .ca-color-hcpcs4{color:#6ee7b7}
+    .ca-label-tag.ca-color-hcpcs4{background:rgba(16,185,129,.1);color:#059669}
+    html.dark .ca-label-tag.ca-color-hcpcs4{background:rgba(52,211,153,.12);color:#6ee7b7}
+    .hcpcs-anatomy-info{display:flex;align-items:flex-start;gap:.6rem;padding:.75rem 1rem;margin-bottom:1rem;border-radius:10px;background:rgba(217,119,6,.06);border:1px solid rgba(217,119,6,.12);font-size:.82rem;color:var(--c-text-muted);line-height:1.45}
+    html.dark .hcpcs-anatomy-info{background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.15)}
+    .hcpcs-anatomy-info i{color:#d97706;margin-top:2px;flex-shrink:0}
+    html.dark .hcpcs-anatomy-info i{color:#fcd34d}
+    /* ---- NDC Code Anatomy ---- */
+    .ca-seg-ndc1{background:rgba(139,92,246,.18);color:#7c3aed}
+    html.dark .ca-seg-ndc1{background:rgba(167,139,250,.2);color:#c4b5fd}
+    .ca-color-ndc1{color:#7c3aed}html.dark .ca-color-ndc1{color:#c4b5fd}
+    .ca-label-tag.ca-color-ndc1{background:rgba(139,92,246,.12);color:#7c3aed}
+    html.dark .ca-label-tag.ca-color-ndc1{background:rgba(167,139,250,.15);color:#c4b5fd}
+    .ca-seg-ndc2{background:rgba(59,130,246,.15);color:#2563eb}
+    html.dark .ca-seg-ndc2{background:rgba(96,165,250,.18);color:#93bbfd}
+    .ca-color-ndc2{color:#2563eb}html.dark .ca-color-ndc2{color:#93bbfd}
+    .ca-label-tag.ca-color-ndc2{background:rgba(59,130,246,.1);color:#2563eb}
+    html.dark .ca-label-tag.ca-color-ndc2{background:rgba(96,165,250,.13);color:#93bbfd}
+    .ca-seg-ndc3{background:rgba(16,185,129,.14);color:#059669}
+    html.dark .ca-seg-ndc3{background:rgba(52,211,153,.16);color:#6ee7b7}
+    .ca-color-ndc3{color:#059669}html.dark .ca-color-ndc3{color:#6ee7b7}
+    .ca-label-tag.ca-color-ndc3{background:rgba(16,185,129,.1);color:#059669}
+    html.dark .ca-label-tag.ca-color-ndc3{background:rgba(52,211,153,.12);color:#6ee7b7}
+    .ca-seg-ndc-dash{color:var(--c-text-dim);padding:.3rem .1rem;font-weight:400;font-size:1.5rem}
+    .ndc-anatomy-info{display:flex;align-items:flex-start;gap:.6rem;padding:.75rem 1rem;margin-bottom:1rem;border-radius:10px;background:linear-gradient(135deg,rgba(139,92,246,.06),rgba(16,185,129,.04));border:1px solid rgba(139,92,246,.12);font-size:.82rem;color:var(--c-text-muted);line-height:1.5}
+    html.dark .ndc-anatomy-info{background:linear-gradient(135deg,rgba(167,139,250,.1),rgba(52,211,153,.06));border-color:rgba(167,139,250,.2)}
+    .ndc-anatomy-info i{color:var(--c-primary);margin-top:2px;flex-shrink:0;font-size:.85rem}
+    .ndc-format-tag{display:inline-block;font-size:.68rem;font-weight:600;color:var(--c-text-dim);background:var(--c-pill-bg);border:1px solid var(--c-pill-border);padding:.1rem .4rem;border-radius:5px;margin-left:.45rem;font-family:'Inter',monospace;letter-spacing:.02em}
+    .ndc-labeler-known{font-size:.78rem;color:var(--c-primary);font-weight:600;margin-top:2px}
+    .ca-seg-snomed
     .ca-rows{display:flex;flex-direction:column;gap:.6rem;margin-bottom:1.25rem}
     .ca-row{display:flex;align-items:flex-start;gap:.75rem;animation:caFadeIn .4s ease both}
     @keyframes caFadeIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
@@ -520,18 +706,19 @@ const HCC_RAF_DATA = {"community":{"1":0.301,"2":0.5,"6":0.381,"17":4.209,"18":2
       SBD: "Branded Drug", GPCK: "Clinical Pack", BPCK: "Branded Pack",
       PIN: "Precise Ingredient", MIN: "Multiple Ingredient",
       SY: "Synonym", TMSY: "Tall Man Synonym", PSN: "Prescribable Name",
-      SCDC: "Clinical Drug Component", SBDC: "Branded Drug Component"
+      SCDC: "Clinical Drug Component", SBDC: "Branded Drug Component",
+      DF: "Dose Form", DFG: "Dose Form Group", SCDF: "Clinical Drug Form", SBDF: "Branded Drug Form"
     };
     const EXAMPLES = {
-      AUTO: ["E11.9", "73211009", "99213", "J0171", "2160-0"],
-      ICD: ["E11.9", "I10", "J18.9"],
-      SNOMED: ["38341003", "73211009", "233604007"],
-      LOINC: ["2345-7", "6690-2", "2160-0"],
-      ATC: ["N02BE01", "C09AA01", "A02BC01"],
-      RXCUI: ["161", "8001", "1191"],
-      CPT: ["99213", "97110", "99397"],
-      HCPCS: ["A4244", "J0135", "E0118"],
-      NDC: ["00002-3105-02", "00003-2188-51", "00069-5420-66"]
+      AUTO: ["E11.9", "73211009", "99213", "J0171", "2160-0", "00069-5420-66"],
+      ICD: ["E11.9", "I10", "J18.9", "M54.5", "K21.0", "F32.1"],
+      SNOMED: ["38341003", "73211009", "233604007", "44054006", "84114007", "195967001"],
+      LOINC: ["2345-7", "6690-2", "2160-0", "718-7", "4548-4", "33914-3"],
+      ATC: ["N02BE01", "C09AA01", "A02BC01", "B01AC06", "J01CA04", "R03AC02"],
+      RXCUI: ["161", "8001", "1191", "10582", "197361", "313782"],
+      CPT: ["99213", "97110", "99397", "27447", "43239", "70553"],
+      HCPCS: ["A4244", "J0135", "E0118", "G0101", "L5000", "J9035"],
+      NDC: ["00002-3105-02", "00003-2188-51", "00069-5420-66", "00074-3799-13", "00078-0401-15", "00093-7180-01"]
     };
     const CORS_PROXY = "https://corsproxy.io/?";
     const CORS_ALLORIGINS_GET = "https://api.allorigins.win/get?url=";
@@ -1109,7 +1296,799 @@ const HCC_RAF_DATA = {"community":{"1":0.301,"2":0.5,"6":0.381,"17":4.209,"18":2
       });
     }
 
-        /* ---- HCC Risk Adjustment (V28 only — PY2026 = 100% V28) ---- */
+        function buildSnomedAnatomy(code, displayName) {
+      if (!code || !/^\\d+$/.test(String(code).trim())) return '';
+      const e = escapeHtml;
+      const conceptId = String(code).trim();
+
+      return '<div class="ca-card" id="snomedAnatomyCard">' +
+        '<button type="button" class="ca-toggle" id="caToggleBtn">' +
+          '<span class="ca-toggle-title">\\u{1F9EC} Code Anatomy</span>' +
+          '<span class="ca-badge">SNOMED CT</span>' +
+          '<i class="fa-solid fa-chevron-down"></i>' +
+        '</button>' +
+        '<div id="caContent">' +
+          '<div class="ca-visual"><span class="ca-seg ca-seg-snomed">' + e(conceptId) + '</span></div>' +
+          '<div class="snomed-tree-info">' +
+            '<i class="fa-solid fa-circle-info"></i>' +
+            '<span>SNOMED CT organizes medical concepts in a tree. Each concept <strong>\\"is a\\" type of</strong> its parent — like folders inside folders, from broad categories down to your specific code.</span>' +
+          '</div>' +
+          '<div class="snomed-tree" id="snomedChainRows">' +
+            '<div class="snomed-chain-loading"><span class="spinner"></span> Building ontology path\\u2026</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }
+
+    /** Enrich the SNOMED anatomy card with the real hierarchy chain (tree view). */
+    async function enrichSnomedAnatomy(conceptId, displayName) {
+      try {
+        const chain = await fetchSnomedAncestorChain(conceptId, displayName);
+        const container = document.getElementById('snomedChainRows');
+        if (!container) return;
+
+        const e = escapeHtml;
+        let html = '';
+        const maxIdx = chain.length - 1;
+
+        chain.forEach((node, i) => {
+          const isRoot = node.id === SNOMED_ROOT_ID;
+          const isCurrent = i === maxIdx;
+          const topLevel = SNOMED_TOP_LEVELS[node.id];
+          const color = snomedDepthColor(i, maxIdx);
+          const emoji = topLevel ? topLevel.emoji + ' ' : (isRoot ? '\u{1F3E5} ' : '');
+          const delay = i * 70;
+
+          // Role label: Root / Top-level name / Intermediate / Target
+          let roleText, roleBg, roleFg;
+          if (isRoot) { roleText = 'Root'; roleBg = color + '12'; roleFg = color; }
+          else if (topLevel) { roleText = topLevel.title; roleBg = color + '12'; roleFg = color; }
+          else if (isCurrent) { roleText = '\u{1F4CD} Your code'; roleBg = color + '15'; roleFg = color; }
+          else { roleText = 'Level ' + i; roleBg = color + '10'; roleFg = color; }
+
+          // Indent wrapper: each level gets more margin-left (tree nesting)
+          const indent = i > 0 ? ' style="margin-left:' + (i * 16) + 'px"' : '';
+
+          // "is a type of" arrow between nodes (skip before first node)
+          if (i > 0) {
+            const arrowIndent = i > 0 ? ' style="margin-left:' + (i * 16 - 8) + 'px"' : '';
+            html += '<div class="snomed-tree-arrow" ' + arrowIndent + '>' +
+              '<div class="sta-line" style="background:' + color + '30"></div>' +
+              '<span class="sta-label"><i class="fa-solid fa-turn-down"></i> ' + (isCurrent ? 'includes' : 'is a type of') + '</span>' +
+            '</div>';
+          }
+
+          // Node
+          html += '<div class="snomed-tree-node' + (isCurrent ? ' stn-target' : '') + '"' + indent + ' style="animation-delay:' + delay + 'ms">' +
+            '<div class="stn-content">' +
+              '<span class="stn-pip" style="border-color:' + color + ';background:' + (isCurrent ? color : 'transparent') + '"></span>' +
+              '<div class="stn-text">' +
+                '<span class="stn-role" style="background:' + roleBg + ';color:' + roleFg + '">' + e(roleText) + '</span>' +
+                '<span class="stn-term">' + emoji + e(node.term) + '</span>' +
+                '<span class="stn-id">' + e(node.id) + '</span>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        });
+
+        container.innerHTML = html;
+        container.style.opacity = '0';
+        requestAnimationFrame(() => {
+          container.style.transition = 'opacity .35s ease';
+          container.style.opacity = '1';
+        });
+      } catch (err) {
+        const container = document.getElementById('snomedChainRows');
+        if (container) container.innerHTML = '<div style="padding:.75rem 1rem;color:var(--c-text-muted);font-size:.88rem">Could not load ontology path.</div>';
+      }
+    }
+
+        /* ---- RxCUI Drug Anatomy ---- */
+    const RXCUI_LAYERS = [
+      { key: 'ingredient', label: 'Ingredient', sub: 'The active compound in this medication', emoji: '\u{1F9EA}', color: 'rx1', ttyPrimary: 'IN', ttyAlt: 'PIN', icon: 'fa-flask' },
+      { key: 'strength', label: 'Strength', sub: 'Ingredient + amount per dose', emoji: '\u2696\uFE0F', color: 'rx2', ttyPrimary: 'SCDC', ttyAlt: null, icon: 'fa-weight-scale' },
+      { key: 'form', label: 'Dose Form', sub: 'How the medication is delivered', emoji: '\u{1F48A}', color: 'rx3', ttyPrimary: 'SCDF', ttyAlt: 'DF', icon: 'fa-capsules' },
+      { key: 'completeDrug', label: 'Complete Drug', sub: 'Full generic description \u2014 ingredient + strength + form', emoji: '\u2705', color: 'rx4', ttyPrimary: 'SCD', ttyAlt: null, icon: 'fa-prescription-bottle-medical' },
+      { key: 'brand', label: 'Brand Name', sub: 'The trademarked commercial product', emoji: '\u{1F3F7}\uFE0F', color: 'rx5', ttyPrimary: 'SBD', ttyAlt: 'BN', icon: 'fa-tag' }
+    ];
+    const TTY_TO_LAYER_INDEX = { 'IN': 0, 'PIN': 0, 'SCDC': 1, 'SBDC': 1, 'DF': 2, 'DFG': 2, 'SCDF': 2, 'SBDF': 2, 'SCD': 3, 'BN': 4, 'SBD': 4 };
+
+    function buildRxcuiAnatomy(rxcui, displayName, tty) {
+      if (!rxcui || !/^\d+$/.test(String(rxcui).trim())) return '';
+      const e = escapeHtml;
+      const code = String(rxcui).trim();
+      const upperTty = (tty || '').toUpperCase();
+      const layerIdx = TTY_TO_LAYER_INDEX[upperTty];
+      const layerLabel = layerIdx != null ? RXCUI_LAYERS[layerIdx].label : (TTY_LABELS[upperTty] || upperTty || 'Drug concept');
+
+      return '<div class="ca-card" id="rxcuiAnatomyCard">' +
+        '<button type="button" class="ca-toggle" id="caToggleBtn">' +
+          '<span class="ca-toggle-title">\u{1F9EC} Code Anatomy</span>' +
+          '<span class="ca-badge">RxNorm</span>' +
+          '<i class="fa-solid fa-chevron-down"></i>' +
+        '</button>' +
+        '<div id="caContent">' +
+          '<div class="rxcui-anatomy-info">' +
+            '<i class="fa-solid fa-circle-info"></i>' +
+            '<span>RxNorm builds drug codes in layers, like a recipe: ' +
+            '<strong>ingredient</strong> \u2192 <strong>strength</strong> \u2192 <strong>dose form</strong> \u2192 <strong>complete drug</strong> \u2192 <strong>brand</strong>. ' +
+            'Your code (<strong>' + e(code) + '</strong>) sits at the <strong>' + e(layerLabel) + '</strong> layer.</span>' +
+          '</div>' +
+          '<div class="ca-rows" id="rxcuiAnatomyRows">' +
+            '<div class="rxcui-anatomy-loading"><span class="spinner"></span> Building drug layers\u2026</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }
+
+    async function enrichRxcuiAnatomy(rxcui, tty) {
+      try {
+        const url = RXNAV_REST + '/rxcui/' + encodeURIComponent(rxcui) + '/related.json?tty=IN+PIN+DF+DFG+SCDC+SCDF+SCD+BN+SBD';
+        const data = await fetchJsonExternal(url);
+
+        const ttyMap = {};
+        if (data && data.relatedGroup && Array.isArray(data.relatedGroup.conceptGroup)) {
+          data.relatedGroup.conceptGroup.forEach(function(grp) {
+            if (grp.tty && Array.isArray(grp.conceptProperties) && grp.conceptProperties.length > 0) {
+              ttyMap[grp.tty] = grp.conceptProperties.map(function(cp) {
+                return { rxcui: cp.rxcui || '', name: cp.name || '' };
+              });
+            }
+          });
+        }
+
+        const upperTty = (tty || '').toUpperCase();
+        const userLayerIdx = TTY_TO_LAYER_INDEX[upperTty];
+        const e = escapeHtml;
+        let html = '';
+        let delay = 0;
+
+        RXCUI_LAYERS.forEach(function(layer, i) {
+          let entries = ttyMap[layer.ttyPrimary] || [];
+          if (entries.length === 0 && layer.ttyAlt) entries = ttyMap[layer.ttyAlt] || [];
+          const found = entries.length > 0;
+          const concept = found ? entries[0] : null;
+          const isActive = (userLayerIdx === i);
+
+          if (i > 0) {
+            html += '<div class="ca-rx-plus" style="animation-delay:' + delay + 'ms"><i class="fa-solid fa-plus"></i></div>';
+            delay += 40;
+          }
+
+          let rowCls = 'ca-row';
+          if (isActive) rowCls += ' ca-rx-active';
+          if (!found) rowCls += ' ca-rx-empty';
+
+          let title = '';
+          if (found) {
+            title = e(concept.name);
+            if (entries.length > 1) title += ' <span style="font-size:.78rem;color:var(--c-text-dim);font-weight:400">(+' + (entries.length - 1) + ' more)</span>';
+          } else {
+            title = 'No ' + layer.label.toLowerCase() + ' found';
+          }
+
+          const rxcuiText = (found && concept.rxcui) ? '<span class="ca-rx-rxcui">RxCUI ' + e(concept.rxcui) + '</span>' : '';
+          const activeTag = isActive ? ' <span style="font-size:.62rem;font-weight:700;color:var(--c-primary);letter-spacing:.4px;text-transform:uppercase;margin-left:.35rem">\u25C0 YOUR CODE</span>' : '';
+
+          html += '<div class="' + rowCls + '" style="animation-delay:' + delay + 'ms">' +
+            '<span class="ca-connector ca-color-' + layer.color + '"></span>' +
+            '<div class="ca-detail">' +
+              '<span class="ca-label-tag ca-color-' + layer.color + '">' +
+                '<i class="fa-solid ' + layer.icon + '" style="margin-right:.3rem;font-size:.65rem"></i>' +
+                e(layer.label) + activeTag +
+              '</span>' +
+              '<span class="ca-row-title">' + layer.emoji + ' ' + title + '</span>' +
+              rxcuiText +
+              '<span class="ca-row-sub">' + e(layer.sub) + '</span>' +
+            '</div>' +
+          '</div>';
+          delay += 80;
+        });
+
+        const container = document.getElementById('rxcuiAnatomyRows');
+        if (!container) return;
+        container.innerHTML = html;
+        container.style.opacity = '0';
+        requestAnimationFrame(function() {
+          container.style.transition = 'opacity .35s ease';
+          container.style.opacity = '1';
+        });
+      } catch (err) {
+        const container = document.getElementById('rxcuiAnatomyRows');
+        if (container) container.innerHTML = '<div style="padding:.75rem 1rem;color:var(--c-text-muted);font-size:.88rem">Could not load drug layers.</div>';
+      }
+    }
+
+            /* ---- LOINC Code Anatomy (6 Axes) ---- */
+    const LOINC_AXES = [
+      { key: 'component', label: 'Component', sub: 'What is being measured or observed', field: 'COMPONENT', color: 'loinc1', emoji: '\u{1F52C}', icon: 'fa-microscope' },
+      { key: 'property', label: 'Property', sub: 'The kind of quantity or measurement type', field: 'PROPERTY', color: 'loinc2', emoji: '\u{1F4CA}', icon: 'fa-chart-simple' },
+      { key: 'timing', label: 'Timing', sub: 'When the specimen was collected', field: 'TIME_ASPCT', color: 'loinc3', emoji: '\u23F1\uFE0F', icon: 'fa-clock' },
+      { key: 'system', label: 'System', sub: 'The specimen or body source', field: 'SYSTEM', color: 'loinc4', emoji: '\u{1FAC1}', icon: 'fa-lungs' },
+      { key: 'scale', label: 'Scale', sub: 'How the result is expressed', field: 'SCALE_TYP', color: 'loinc5', emoji: '\u{1F4CF}', icon: 'fa-ruler' },
+      { key: 'method', label: 'Method', sub: 'The technique used to perform the test (optional)', field: 'METHOD_TYP', color: 'loinc6', emoji: '\u2697\uFE0F', icon: 'fa-flask-vial' }
+    ];
+
+    const LOINC_ABBREVS = {
+      PROPERTY: {
+        'MCnc':'Mass Concentration','SCnc':'Substance Concentration','ACnc':'Arbitrary Concentration',
+        'CCnc':'Catalytic Concentration','NCnc':'Number Concentration','MFr':'Mass Fraction',
+        'NFr':'Number Fraction','CFr':'Catalytic Fraction','SFr':'Substance Fraction','VFr':'Volume Fraction',
+        'MRat':'Mass Rate','SRat':'Substance Rate','CRat':'Catalytic Rate','NRat':'Number Rate',
+        'VRat':'Volume Rate','Naric':'Number Areic (per area)','Titr':'Titer',
+        'Imp':'Impression/Interpretation','Type':'Type','Find':'Finding',
+        'Prid':'Presence or Identity','Num':'Number','Ql':'Qualitative',
+        'EntMass':'Entitic Mass','EntSub':'Entitic Substance','EntNum':'Entitic Number',
+        'EntVol':'Entitic Volume','EntCat':'Entitic Catalytic Activity',
+        'LnCnc':'Log Number Concentration','Ratio':'Ratio',
+        'Vel':'Velocity','Accel':'Acceleration','Temp':'Temperature',
+        'Time':'Time/Duration','Len':'Length','Area':'Area','Vol':'Volume',
+        'Pres':'Pressure','Angle':'Angle','PPres':'Partial Pressure',
+        'RelTime':'Relative Time','Visc':'Viscosity'
+      },
+      TIME_ASPCT: {
+        'Pt':'Point in time','24H':'24 Hours','1H':'1 Hour','2H':'2 Hours','12H':'12 Hours',
+        'Rndm':'Random','XXX':'Unspecified','Dur':'Duration','Stdy':'Steady state'
+      },
+      SYSTEM: {
+        'Ser/Plas':'Serum or Plasma','Ser':'Serum','Plas':'Plasma','Bld':'Blood',
+        'BldA':'Arterial Blood','BldV':'Venous Blood','BldC':'Capillary Blood',
+        'Urine':'Urine','CSF':'Cerebrospinal Fluid','Stool':'Stool',
+        'Tiss':'Tissue','Body fld':'Body Fluid','Synv fld':'Synovial Fluid',
+        'Prt':'Peritoneal Fluid','Plr fld':'Pleural Fluid','RBC':'Red Blood Cells',
+        'WBC':'White Blood Cells','PPP':'Platelet Poor Plasma','PRP':'Platelet Rich Plasma',
+        'Semen':'Semen','Saliva':'Saliva','Sweat':'Sweat','Hair':'Hair',
+        'Bld.dot':'Dried Blood Spot','Amnio fld':'Amniotic Fluid',
+        'XXX':'Unspecified','Patient':'Patient'
+      },
+      SCALE_TYP: {
+        'Qn':'Quantitative','Ord':'Ordinal','Nom':'Nominal','Nar':'Narrative',
+        'OrdQn':'Ordinal or Quantitative','Doc':'Document','Set':'Set',
+        'Multi':'Multi','SQn':'Semi-Quantitative'
+      }
+    };
+
+    function expandLoincAbbrev(field, value) {
+      if (!value || !value.trim()) return null;
+      const v = value.trim();
+      const map = LOINC_ABBREVS[field];
+      if (map && map[v]) return { short: v, long: map[v] };
+      return { short: v, long: null };
+    }
+
+    function buildLoincAnatomy(code, displayName) {
+      if (!code) return '';
+      const e = escapeHtml;
+      const codeVal = String(code).trim();
+
+      return '<div class="ca-card" id="loincAnatomyCard">' +
+        '<button type="button" class="ca-toggle" id="caToggleBtn">' +
+          '<span class="ca-toggle-title">\u{1F9EC} Code Anatomy</span>' +
+          '<span class="ca-badge">LOINC</span>' +
+          '<i class="fa-solid fa-chevron-down"></i>' +
+        '</button>' +
+        '<div id="caContent">' +
+          '<div class="loinc-anatomy-info">' +
+            '<i class="fa-solid fa-circle-info"></i>' +
+            '<span>Every LOINC code is built from <strong>6 axes</strong> that pinpoint exactly what\u2019s being measured: ' +
+            'the <strong>component</strong> (what), <strong>property</strong> (what kind), <strong>timing</strong> (when), ' +
+            '<strong>system</strong> (where/specimen), <strong>scale</strong> (how expressed), and <strong>method</strong> (technique).</span>' +
+          '</div>' +
+          '<div class="ca-rows" id="loincAnatomyRows">' +
+            '<div class="loinc-anatomy-loading"><span class="spinner"></span> Loading axes\u2026</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }
+
+    async function enrichLoincAnatomy(code) {
+      try {
+        const codeVal = String(code).trim().toUpperCase();
+        const url = LOINC_URL + '?terms=' + encodeURIComponent(codeVal) + '&ef=COMPONENT,PROPERTY,TIME_ASPCT,SYSTEM,SCALE_TYP,METHOD_TYP&count=10';
+        const data = await fetchJsonExternal(url);
+        if (!Array.isArray(data) || data.length < 3) throw new Error('bad response');
+
+        const codes = data[1] || [];
+        const extra = data[2] || {};
+        const e = escapeHtml;
+
+        // Find matching code index
+        let matchIdx = -1;
+        const codeClean = codeVal.replace(/[\s-]/g, '');
+        for (let i = 0; i < codes.length; i++) {
+          const c = String(codes[i]).trim().toUpperCase();
+          if (c === codeVal || c.replace(/[\s-]/g, '') === codeClean) { matchIdx = i; break; }
+        }
+        if (matchIdx === -1 && codes.length > 0) matchIdx = 0;
+        if (matchIdx === -1) throw new Error('code not found');
+
+        let html = '';
+        LOINC_AXES.forEach(function(axis, i) {
+          const fieldArr = extra[axis.field];
+          const raw = (Array.isArray(fieldArr) && matchIdx < fieldArr.length) ? String(fieldArr[matchIdx] || '').trim() : '';
+          const isEmpty = !raw;
+          const expanded = isEmpty ? null : expandLoincAbbrev(axis.field, raw);
+          const delay = i * 80;
+
+          let rowCls = 'ca-row';
+          if (isEmpty) rowCls += ' loinc-empty';
+
+          let titleHtml = '';
+          if (isEmpty) {
+            titleHtml = 'Not specified';
+          } else if (expanded && expanded.long) {
+            titleHtml = e(expanded.long) + ' <span class="loinc-axis-expand">(' + e(expanded.short) + ')</span>';
+          } else {
+            titleHtml = e(raw);
+          }
+
+          html += '<div class="' + rowCls + '" style="animation-delay:' + delay + 'ms">' +
+            '<span class="ca-connector ca-color-' + axis.color + '"></span>' +
+            '<div class="ca-detail">' +
+              '<span class="ca-label-tag ca-color-' + axis.color + '">' +
+                '<i class="fa-solid ' + axis.icon + '" style="margin-right:.3rem;font-size:.65rem"></i>' +
+                e(axis.label) +
+              '</span>' +
+              '<span class="ca-row-title">' + axis.emoji + ' ' + titleHtml + '</span>' +
+              '<span class="ca-row-sub">' + e(axis.sub) + '</span>' +
+            '</div>' +
+          '</div>';
+        });
+
+        const container = document.getElementById('loincAnatomyRows');
+        if (!container) return;
+        container.innerHTML = html;
+        container.style.opacity = '0';
+        requestAnimationFrame(function() {
+          container.style.transition = 'opacity .35s ease';
+          container.style.opacity = '1';
+        });
+      } catch (err) {
+        const container = document.getElementById('loincAnatomyRows');
+        if (container) container.innerHTML = '<div style="padding:.75rem 1rem;color:var(--c-text-muted);font-size:.88rem">Could not load LOINC axes.</div>';
+      }
+    }
+
+    /* ---- CPT Code Anatomy (range-based, fully synchronous) ---- */
+    const CPT_RANGES = [
+      {min:99202,max:99499,section:"Evaluation & Management",icon:"fa-clipboard-list",desc:"Office visits, consultations, hospital care, and patient assessments"},
+      {min:100,max:1999,section:"Anesthesia",icon:"fa-syringe",desc:"Anesthesia services organized by body area"},
+      {min:99100,max:99140,section:"Anesthesia",icon:"fa-syringe",desc:"Qualifying circumstances for anesthesia"},
+      {min:10004,max:19999,section:"Surgery",sub:"Integumentary System",subDesc:"Skin, subcutaneous tissue, nails, breasts",icon:"fa-user-doctor",subIcon:"fa-hand"},
+      {min:20000,max:29999,section:"Surgery",sub:"Musculoskeletal System",subDesc:"Bones, joints, muscles, tendons, ligaments",icon:"fa-user-doctor",subIcon:"fa-bone"},
+      {min:30000,max:32999,section:"Surgery",sub:"Respiratory System",subDesc:"Nose, sinuses, larynx, trachea, lungs",icon:"fa-user-doctor",subIcon:"fa-lungs"},
+      {min:33010,max:37799,section:"Surgery",sub:"Cardiovascular System",subDesc:"Heart, arteries, veins, pericardium",icon:"fa-user-doctor",subIcon:"fa-heart-pulse"},
+      {min:38100,max:38999,section:"Surgery",sub:"Hemic & Lymphatic",subDesc:"Spleen, bone marrow, lymph nodes",icon:"fa-user-doctor",subIcon:"fa-droplet"},
+      {min:39000,max:39599,section:"Surgery",sub:"Mediastinum & Diaphragm",subDesc:"Mediastinum and diaphragm procedures",icon:"fa-user-doctor",subIcon:"fa-lungs"},
+      {min:40490,max:49999,section:"Surgery",sub:"Digestive System",subDesc:"Mouth, esophagus, stomach, intestines, liver",icon:"fa-user-doctor",subIcon:"fa-utensils"},
+      {min:50010,max:53899,section:"Surgery",sub:"Urinary System",subDesc:"Kidneys, ureters, bladder, urethra",icon:"fa-user-doctor",subIcon:"fa-filter"},
+      {min:54000,max:55899,section:"Surgery",sub:"Male Genital System",subDesc:"Male reproductive organs",icon:"fa-user-doctor",subIcon:"fa-person"},
+      {min:55920,max:58999,section:"Surgery",sub:"Female Genital / Maternity",subDesc:"Female reproductive organs, pregnancy, delivery",icon:"fa-user-doctor",subIcon:"fa-person-dress"},
+      {min:59000,max:59899,section:"Surgery",sub:"Maternity Care & Delivery",subDesc:"Antepartum, delivery, postpartum care",icon:"fa-user-doctor",subIcon:"fa-baby"},
+      {min:60000,max:60699,section:"Surgery",sub:"Endocrine System",subDesc:"Thyroid, parathyroid, adrenal glands",icon:"fa-user-doctor",subIcon:"fa-disease"},
+      {min:61000,max:64999,section:"Surgery",sub:"Nervous System",subDesc:"Brain, spinal cord, peripheral nerves",icon:"fa-user-doctor",subIcon:"fa-brain"},
+      {min:65091,max:68899,section:"Surgery",sub:"Eye & Ocular Adnexa",subDesc:"Eyeball, orbit, eyelids, ocular muscles",icon:"fa-user-doctor",subIcon:"fa-eye"},
+      {min:69000,max:69990,section:"Surgery",sub:"Auditory System",subDesc:"External, middle, and inner ear",icon:"fa-user-doctor",subIcon:"fa-ear-listen"},
+      {min:70010,max:79999,section:"Radiology",icon:"fa-x-ray",desc:"Diagnostic imaging, radiation oncology, nuclear medicine"},
+      {min:80047,max:89398,section:"Pathology & Laboratory",icon:"fa-vial",desc:"Lab tests, blood work, tissue analysis, molecular diagnostics"},
+      {min:90281,max:99199,section:"Medicine",icon:"fa-stethoscope",desc:"Non-surgical therapies, immunizations, psychiatry, rehabilitation"},
+      {min:99500,max:99607,section:"Medicine",icon:"fa-stethoscope",desc:"Home health and special services"}
+    ];
+
+    function classifyCpt(code) {
+      const num = parseInt(code, 10);
+      if (isNaN(num)) return null;
+      for (const r of CPT_RANGES) {
+        if (num >= r.min && num <= r.max) return r;
+      }
+      return null;
+    }
+
+    function buildCptAnatomy(code, displayName) {
+      const e = escapeHtml;
+      const info = classifyCpt(code);
+      let rows = '';
+
+      // Row 1: Category I
+      rows += '<div class="ca-row" style="animation-delay:0ms">' +
+        '<div class="ca-connector"><span class="ca-dot" style="background:#7c3aed"></span><span class="ca-line" style="background:#7c3aed"></span></div>' +
+        '<div class="ca-detail"><div class="ca-row-header"><span class="ca-label-tag ca-color-cpt1"><i class="fa-solid fa-layer-group" style="margin-right:.3rem"></i>Category</span></div>' +
+        '<div class="ca-row-title">Category I</div>' +
+        '<div class="ca-row-sub">Standard medical procedure and service codes</div></div></div>';
+
+      if (info) {
+        // Compute section-level range for Surgery (aggregate all subsection ranges)
+        var sMin = info.min, sMax = info.max;
+        if (info.sub) {
+          sMin = 10004; sMax = 69990;
+        }
+        var sectionDesc = info.sub ? 'Surgical procedures organized by body system' : (info.desc || '');
+
+        // Row 2: Section
+        rows += '<div class="ca-row" style="animation-delay:80ms">' +
+          '<div class="ca-connector"><span class="ca-dot" style="background:#2563eb"></span><span class="ca-line" style="background:#2563eb"></span></div>' +
+          '<div class="ca-detail"><div class="ca-row-header"><span class="ca-label-tag ca-color-cpt2"><i class="fa-solid ' + info.icon + '" style="margin-right:.3rem"></i>Section</span>' +
+          '<span class="cpt-range-tag">' + sMin + '\u2013' + sMax + '</span></div>' +
+          '<div class="ca-row-title">' + e(info.section) + '</div>' +
+          '<div class="ca-row-sub">' + e(sectionDesc) + '</div></div></div>';
+
+        // Row 3: Subsection / Body System (only for Surgery and similar)
+        if (info.sub) {
+          rows += '<div class="ca-row" style="animation-delay:160ms">' +
+            '<div class="ca-connector"><span class="ca-dot" style="background:#0d9488"></span><span class="ca-line" style="background:#0d9488"></span></div>' +
+            '<div class="ca-detail"><div class="ca-row-header"><span class="ca-label-tag ca-color-cpt3"><i class="fa-solid ' + info.subIcon + '" style="margin-right:.3rem"></i>Body System</span>' +
+            '<span class="cpt-range-tag">' + info.min + '\u2013' + info.max + '</span></div>' +
+            '<div class="ca-row-title">' + e(info.sub) + '</div>' +
+            '<div class="ca-row-sub">' + e(info.subDesc) + '</div></div></div>';
+        }
+      }
+
+      // Row: Your Code (always last, highlighted)
+      var lastColor = info && info.sub ? '#059669' : (info ? '#0d9488' : '#059669');
+      var lastTag = info && info.sub ? 'ca-color-cpt4' : (info ? 'ca-color-cpt3' : 'ca-color-cpt4');
+      var lastDelay = info ? (info.sub ? 240 : 160) : 80;
+      rows += '<div class="ca-row" style="background:linear-gradient(135deg,rgba(16,185,129,.06),rgba(139,92,246,.04));border-radius:10px;padding:.55rem .1rem;animation-delay:' + lastDelay + 'ms">' +
+        '<div class="ca-connector"><span class="ca-dot" style="background:' + lastColor + '"></span></div>' +
+        '<div class="ca-detail"><div class="ca-row-header"><span class="ca-label-tag ' + lastTag + '"><i class="fa-solid fa-location-dot" style="margin-right:.3rem"></i>Your Code</span></div>' +
+        '<div class="ca-row-title">CPT ' + e(code) + (displayName ? ' \u2014 ' + e(displayName) : '') + '</div>' +
+        '<div class="ca-row-sub">The specific procedure or service described by this code</div></div></div>';
+
+      return '<div class="ca-card">' +
+        '<button type="button" class="ca-toggle" id="caToggleBtn">' +
+        '<span class="ca-toggle-title">\u{1F9EC} Code Anatomy</span>' +
+        '<span class="ca-badge">CPT</span>' +
+        '<i class="fa-solid fa-chevron-down ca-chevron"></i></button>' +
+        '<div id="caContent">' +
+        '<div class="cpt-anatomy-info"><i class="fa-solid fa-circle-info"></i>' +
+        '<span>CPT codes are 5-digit numbers organized by medical service type. The numeric range reveals the <strong>section</strong> (area of medicine) and <strong>body system</strong> being treated.</span></div>' +
+        '<div class="ca-rows">' + rows + '</div></div></div>';
+    }
+
+    /* ---- HCPCS Level II Code Anatomy (letter-prefix-based, fully synchronous) ---- */
+    const HCPCS_SECTIONS = {
+      'A': {section:'Transportation & Medical Supplies',icon:'fa-truck-medical',desc:'Ambulance transport, medical/surgical supplies, and administrative items',
+        subs:[{min:0,max:999,sub:'Transportation Services',subDesc:'Ambulance and non-emergency transport',subIcon:'fa-ambulance'},
+              {min:4000,max:8999,sub:'Medical & Surgical Supplies',subDesc:'Supplies, accessories, and miscellaneous items',subIcon:'fa-kit-medical'},
+              {min:9000,max:9999,sub:'Administrative & Investigational',subDesc:'Miscellaneous services and investigational items',subIcon:'fa-flask'}]},
+      'B': {section:'Enteral & Parenteral Therapy',icon:'fa-prescription-bottle',desc:'Nutritional support — enteral formulas, IV nutrition, pumps and supplies'},
+      'C': {section:'Outpatient PPS',icon:'fa-hospital',desc:'Temporary codes for hospital outpatient services and new technology'},
+      'D': {section:'Dental Procedures',icon:'fa-tooth',desc:'Dental services — diagnostic, preventive, restorative, orthodontic, oral surgery'},
+      'E': {section:'Durable Medical Equipment',icon:'fa-wheelchair',desc:'Wheelchairs, hospital beds, oxygen equipment, CPAP machines, and other DME',
+        subs:[{min:100,max:999,sub:'Canes, Crutches & Walkers',subDesc:'Walking aids and accessories',subIcon:'fa-person-cane'},
+              {min:1000,max:1699,sub:'Hospital Beds & Accessories',subDesc:'Hospital beds, mattresses, and related items',subIcon:'fa-bed'},
+              {min:1700,max:1841,sub:'Air Pressure & Oxygen Equipment',subDesc:'CPAP, nebulizers, oxygen concentrators',subIcon:'fa-lungs'},
+              {min:2201,max:8002,sub:'Wheelchairs & Power Mobility',subDesc:'Manual and power wheelchairs, scooters, accessories',subIcon:'fa-wheelchair-move'}]},
+      'G': {section:'Procedures & Professional Services',icon:'fa-user-doctor',desc:'Temporary codes for professional services, screenings, and quality measures'},
+      'H': {section:'Behavioral Health',icon:'fa-brain',desc:'Alcohol, drug abuse treatment, and mental health services'},
+      'J': {section:'Drugs & Biologicals',icon:'fa-syringe',desc:'Injectable drugs, chemotherapy agents, immunosuppressives, and inhalation solutions',
+        subs:[{min:0,max:8999,sub:'Non-Oral Drugs',subDesc:'Injectable, infusion, and inhalation drugs',subIcon:'fa-vial'},
+              {min:9000,max:9999,sub:'Chemotherapy Drugs',subDesc:'Antineoplastic and immunotherapy agents',subIcon:'fa-radiation'}]},
+      'K': {section:'DME Temporary Codes',icon:'fa-wheelchair-move',desc:'Temporary codes assigned to DME items awaiting permanent code assignment'},
+      'L': {section:'Orthotics & Prosthetics',icon:'fa-person-walking',desc:'Orthotic devices, prosthetic limbs, implants, and related services',
+        subs:[{min:0,max:4999,sub:'Orthotic Procedures & Devices',subDesc:'Braces, supports, and orthopedic devices',subIcon:'fa-shoe-prints'},
+              {min:5000,max:9999,sub:'Prosthetic Procedures & Devices',subDesc:'Prosthetic limbs, implants, and accessories',subIcon:'fa-hand'}]},
+      'M': {section:'Medical Services',icon:'fa-stethoscope',desc:'Office services, cellular therapy, and other specified medical procedures'},
+      'P': {section:'Pathology & Laboratory',icon:'fa-microscope',desc:'Chemistry, hematology, microbiology, and screening tests'},
+      'Q': {section:'Temporary Miscellaneous Codes',icon:'fa-tags',desc:'Temporary codes for services not elsewhere classified — drugs, supplies, casting'},
+      'R': {section:'Diagnostic Radiology',icon:'fa-x-ray',desc:'Portable X-ray and EKG transportation services'},
+      'S': {section:'Private Payer Codes',icon:'fa-file-invoice-dollar',desc:'Non-Medicare codes used by private insurers — Medicaid, Blue Cross, etc.'},
+      'T': {section:'State Medicaid Codes',icon:'fa-landmark',desc:'State Medicaid agency codes for services not covered by standard HCPCS'},
+      'U': {section:'Coronavirus & Infectious Disease',icon:'fa-virus',desc:'COVID-19 and infectious disease testing, therapeutics, and related services'},
+      'V': {section:'Vision & Hearing Services',icon:'fa-eye',desc:'Eyeglasses, contact lenses, hearing aids, and related fitting services',
+        subs:[{min:0,max:2999,sub:'Vision Services',subDesc:'Eyeglasses, frames, lenses, contact lenses, prosthetics',subIcon:'fa-glasses'},
+              {min:5000,max:5999,sub:'Hearing Services',subDesc:'Hearing aids, testing, fitting, and accessories',subIcon:'fa-ear-listen'}]}
+    };
+
+    function classifyHcpcs(code) {
+      if (!code || code.length < 2) return null;
+      const c = code.toUpperCase().trim();
+      const letter = c.charAt(0);
+      const info = HCPCS_SECTIONS[letter];
+      if (!info) return null;
+      const num = parseInt(c.substring(1), 10);
+      if (isNaN(num)) return { letter, ...info, sub: null, subDesc: null, subIcon: null, num };
+      if (info.subs) {
+        for (const s of info.subs) {
+          if (num >= s.min && num <= s.max) {
+            return { letter, section: info.section, icon: info.icon, desc: info.desc, sub: s.sub, subDesc: s.subDesc, subIcon: s.subIcon, num };
+          }
+        }
+      }
+      return { letter, section: info.section, icon: info.icon, desc: info.desc, sub: null, subDesc: null, subIcon: null, num };
+    }
+
+    function buildHcpcsAnatomy(code, displayName) {
+      const e = escapeHtml;
+      const info = classifyHcpcs(code);
+      if (!info) return '';
+      let rows = '';
+
+      // Row 1: Level II
+      rows += '<div class="ca-row" style="animation-delay:0ms">' +
+        '<div class="ca-connector"><span class="ca-dot" style="background:#d97706"></span><span class="ca-line" style="background:#d97706"></span></div>' +
+        '<div class="ca-detail"><div class="ca-row-header"><span class="ca-label-tag ca-color-hcpcs1"><i class="fa-solid fa-layer-group" style="margin-right:.3rem"></i>Level</span></div>' +
+        '<div class="ca-row-title">HCPCS Level II</div>' +
+        '<div class="ca-row-sub">Alphanumeric codes maintained by CMS, supplementing CPT</div></div></div>';
+
+      // Row 2: Section (by letter prefix)
+      rows += '<div class="ca-row" style="animation-delay:80ms">' +
+        '<div class="ca-connector"><span class="ca-dot" style="background:#ea580c"></span><span class="ca-line" style="background:#ea580c"></span></div>' +
+        '<div class="ca-detail"><div class="ca-row-header"><span class="ca-label-tag ca-color-hcpcs2"><i class="fa-solid ' + info.icon + '" style="margin-right:.3rem"></i>Section</span>' +
+        '<span class="cpt-range-tag">' + e(info.letter) + '0000\u2013' + e(info.letter) + '9999</span></div>' +
+        '<div class="ca-row-title">' + e(info.section) + '</div>' +
+        '<div class="ca-row-sub">' + e(info.desc) + '</div></div></div>';
+
+      // Row 3: Subcategory (only for sections with sub-ranges)
+      if (info.sub) {
+        rows += '<div class="ca-row" style="animation-delay:160ms">' +
+          '<div class="ca-connector"><span class="ca-dot" style="background:#be185d"></span><span class="ca-line" style="background:#be185d"></span></div>' +
+          '<div class="ca-detail"><div class="ca-row-header"><span class="ca-label-tag ca-color-hcpcs3"><i class="fa-solid ' + info.subIcon + '" style="margin-right:.3rem"></i>Subcategory</span></div>' +
+          '<div class="ca-row-title">' + e(info.sub) + '</div>' +
+          '<div class="ca-row-sub">' + e(info.subDesc) + '</div></div></div>';
+      }
+
+      // Row: Your Code (always last, highlighted)
+      var lastColor = info.sub ? '#059669' : '#059669';
+      var lastTag = info.sub ? 'ca-color-hcpcs4' : 'ca-color-hcpcs3';
+      if (info.sub) lastTag = 'ca-color-hcpcs4';
+      var lastDelay = info.sub ? 240 : 160;
+      rows += '<div class="ca-row" style="background:linear-gradient(135deg,rgba(16,185,129,.06),rgba(217,119,6,.04));border-radius:10px;padding:.55rem .1rem;animation-delay:' + lastDelay + 'ms">' +
+        '<div class="ca-connector"><span class="ca-dot" style="background:#059669"></span></div>' +
+        '<div class="ca-detail"><div class="ca-row-header"><span class="ca-label-tag ' + lastTag + '"><i class="fa-solid fa-location-dot" style="margin-right:.3rem"></i>Your Code</span></div>' +
+        '<div class="ca-row-title">HCPCS ' + e(code.toUpperCase()) + (displayName ? ' \u2014 ' + e(displayName) : '') + '</div>' +
+        '<div class="ca-row-sub">The specific item, service, or supply described by this code</div></div></div>';
+
+      return '<div class="ca-card">' +
+        '<button type="button" class="ca-toggle" id="caToggleBtn">' +
+        '<span class="ca-toggle-title">\u{1F9EC} Code Anatomy</span>' +
+        '<span class="ca-badge">HCPCS</span>' +
+        '<i class="fa-solid fa-chevron-down ca-chevron"></i></button>' +
+        '<div id="caContent">' +
+        '<div class="hcpcs-anatomy-info"><i class="fa-solid fa-circle-info"></i>' +
+        '<span>HCPCS Level II codes start with a <strong>letter</strong> (A\u2013V) that identifies the section, followed by 4 digits that pinpoint the specific item or service.</span></div>' +
+        '<div class="ca-rows">' + rows + '</div></div></div>';
+    }
+
+    /* ---- NDC Code Anatomy (segment-based, fully synchronous) ---- */
+
+    /** Known FDA labeler codes mapped to company names.
+     *  Covers top ~50 major pharmaceutical companies and common generics. */
+    const NDC_LABELERS = {
+      // --- Big Pharma (brand) ---
+      "00002": "Eli Lilly and Company",
+      "00003": "E.R. Squibb & Sons (Bristol-Myers Squibb)",
+      "00004": "Roche Products Inc.",
+      "00006": "Merck Sharp & Dohme (Merck & Co.)",
+      "00008": "Wyeth Pharmaceuticals (Pfizer)",
+      "00009": "Pfizer Inc. (Upjohn)",
+      "00013": "Pfizer Laboratories",
+      "00023": "Allergan (AbbVie)",
+      "00024": "Sanofi-Aventis U.S.",
+      "00025": "GlaxoSmithKline",
+      "00028": "Organon & Co.",
+      "00029": "Searle (Pfizer)",
+      "00039": "Hoechst Marion Roussel (Sanofi)",
+      "00046": "Wyeth-Ayerst (Pfizer)",
+      "00069": "Pfizer Labs Div Pfizer Inc.",
+      "00074": "AbbVie Inc. (Abbott Labs)",
+      "00078": "Novartis Pharmaceuticals Corp.",
+      "00085": "Sanofi Pasteur",
+      "00093": "Teva Pharmaceuticals USA",
+      "00173": "GlaxoSmithKline",
+      "00186": "AstraZeneca Pharmaceuticals LP",
+      "00310": "AstraZeneca LP",
+      "00378": "Mylan Pharmaceuticals (Viatris)",
+      "00456": "Forest Laboratories (Allergan)",
+      "00480": "Teva Pharmaceuticals Inc.",
+      "00591": "Watson Laboratories (Teva/Actavis)",
+      "00597": "Boehringer Ingelheim Pharmaceuticals",
+      "00781": "Sandoz Inc. (Novartis generics)",
+      "00904": "Major Pharmaceuticals",
+      "10702": "Glenmark Pharmaceuticals",
+      "16714": "Northstar Rx",
+      "16729": "Accord Healthcare",
+      "17478": "Akorn Inc.",
+      "43547": "Solco Healthcare",
+      "47335": "Sun Pharmaceutical Industries",
+      "49884": "Par Pharmaceutical (Endo)",
+      "50242": "Genentech Inc. (Roche)",
+      "50419": "Bayer HealthCare Pharmaceuticals",
+      "50458": "Janssen Pharmaceuticals (J&J)",
+      "51991": "Breckenridge Pharmaceutical",
+      "54868": "Physicians Total Care",
+      "55111": "Dr. Reddy's Laboratories",
+      "55513": "Amgen Inc.",
+      "57894": "Janssen Biotech (J&J)",
+      "58160": "GlaxoSmithKline Biologicals",
+      "59676": "Janssen Products LP (J&J)",
+      "60505": "Apotex Corp.",
+      "60793": "Pfizer Inc.",
+      "61958": "Gilead Sciences LLC",
+      "62332": "Alembic Pharmaceuticals",
+      "63304": "Ranbaxy Pharmaceuticals (Sun)",
+      "64764": "Shire US (Takeda)",
+      "65862": "Aurobindo Pharma",
+      "66582": "Merck Sharp & Dohme Corp.",
+      "66658": "Eli Lilly and Company",
+      "67877": "Ascend Laboratories",
+      "68001": "Blue Point Laboratories (Amneal)",
+      "68084": "American Health Packaging",
+      "68180": "Lupin Pharmaceuticals",
+      "68462": "Amneal Pharmaceuticals",
+      "69097": "Cipla USA",
+      "70515": "Amneal Pharmaceuticals LLC",
+      "72511": "Amgen USA Inc.",
+    };
+
+    /** Parse an NDC code into its 3 structural segments.
+     *  Supports formats: 4-4-2, 5-3-2, 5-4-1, 5-4-2 (11-digit HIPAA), and plain 10/11-digit strings.
+     *  @param {string} ndc - The NDC code (with or without dashes)
+     *  @returns {object|null} Parsed anatomy or null if invalid */
+    function parseNdcAnatomy(ndc) {
+      if (!ndc) return null;
+      const raw = ndc.trim();
+      const digits = raw.replace(/\D/g, '');
+
+      let labeler, product, pkg, format, totalDigits;
+
+      // First try dashed formats
+      const dashed = raw.match(/^(\d+)-(\d+)-(\d+)$/);
+      if (dashed) {
+        labeler = dashed[1];
+        product = dashed[2];
+        pkg = dashed[3];
+        totalDigits = labeler.length + product.length + pkg.length;
+        format = labeler.length + '-' + product.length + '-' + pkg.length;
+      } else if (digits.length === 11) {
+        // 11-digit HIPAA format: always 5-4-2
+        labeler = digits.substring(0, 5);
+        product = digits.substring(5, 9);
+        pkg = digits.substring(9, 11);
+        totalDigits = 11;
+        format = '5-4-2';
+      } else if (digits.length === 10) {
+        // Ambiguous without dashes; assume 5-4-1 (most common) but note it
+        labeler = digits.substring(0, 5);
+        product = digits.substring(5, 9);
+        pkg = digits.substring(9, 10);
+        totalDigits = 10;
+        format = '5-4-1';
+      } else {
+        return null; // Not a valid NDC length
+      }
+
+      // Validate: all segments must be numeric
+      if (!/^\d+$/.test(labeler) || !/^\d+$/.test(product) || !/^\d+$/.test(pkg)) return null;
+
+      // Determine format name
+      let formatName;
+      if (format === '4-4-2') formatName = '4-4-2 (10-digit)';
+      else if (format === '5-3-2') formatName = '5-3-2 (10-digit)';
+      else if (format === '5-4-1') formatName = '5-4-1 (10-digit)';
+      else if (format === '5-4-2') formatName = '5-4-2 (11-digit HIPAA)';
+      else formatName = format + ' (' + totalDigits + '-digit)';
+
+      // Look up labeler name
+      // Try the labeler as-is, and also with leading zeros to pad to 5 digits
+      let labelerName = NDC_LABELERS[labeler] || null;
+      if (!labelerName && labeler.length < 5) {
+        labelerName = NDC_LABELERS[labeler.padStart(5, '0')] || null;
+      }
+      // Also try stripping leading zeros for 4-digit labelers stored with 5 digits
+      if (!labelerName && labeler.length === 4) {
+        labelerName = NDC_LABELERS['0' + labeler] || null;
+      }
+
+      // Package size description based on common package codes
+      let packageHint = '';
+      const pkgNum = parseInt(pkg, 10);
+      if (pkg.length === 2) {
+        if (pkgNum === 1) packageHint = 'Single unit / small package';
+        else if (pkgNum <= 5) packageHint = 'Small package size';
+        else if (pkgNum <= 30) packageHint = 'Mid-range package';
+        else if (pkgNum <= 60) packageHint = 'Larger package';
+        else if (pkgNum <= 99) packageHint = 'Bulk / institutional size';
+      } else if (pkg.length === 1) {
+        packageHint = 'Package variant ' + pkg;
+      }
+
+      return {
+        labeler,
+        product,
+        pkg,
+        format,
+        formatName,
+        labelerName,
+        packageHint,
+        totalDigits,
+        display: labeler + '-' + product + '-' + pkg,
+      };
+    }
+
+    function buildNdcAnatomy(code, displayName) {
+      const e = escapeHtml;
+      const anatomy = parseNdcAnatomy(code);
+      if (!anatomy) return '';
+
+      let rows = '';
+
+      // Row 1: Labeler Code
+      const labelerTitle = anatomy.labelerName
+        ? e(anatomy.labelerName)
+        : 'Labeler ' + e(anatomy.labeler);
+      const labelerSub = anatomy.labelerName
+        ? 'FDA-assigned labeler code <strong>' + e(anatomy.labeler) + '</strong> — identifies the manufacturer, repackager, or distributor'
+        : 'FDA-assigned code identifying the manufacturer, repackager, or distributor. Labeler code: <strong>' + e(anatomy.labeler) + '</strong>';
+      rows += '<div class="ca-row" style="animation-delay:0ms">' +
+        '<div class="ca-connector"><span class="ca-dot" style="background:#7c3aed"></span><span class="ca-line" style="background:#7c3aed"></span></div>' +
+        '<div class="ca-detail"><div class="ca-row-header"><span class="ca-label-tag ca-color-ndc1"><i class="fa-solid fa-industry" style="margin-right:.3rem"></i>Labeler Code</span>' +
+        '<span class="ndc-format-tag">' + e(anatomy.labeler.length) + ' digits</span></div>' +
+        '<div class="ca-row-title">' + labelerTitle + '</div>' +
+        '<div class="ca-row-sub">' + labelerSub + '</div>' +
+        (anatomy.labelerName ? '<div class="ndc-labeler-known"><i class="fa-solid fa-circle-check" style="margin-right:.25rem;font-size:.7rem"></i>Recognized manufacturer</div>' : '') +
+        '</div></div>';
+
+      // Row 2: Product Code
+      rows += '<div class="ca-row" style="animation-delay:80ms">' +
+        '<div class="ca-connector"><span class="ca-dot" style="background:#2563eb"></span><span class="ca-line" style="background:#2563eb"></span></div>' +
+        '<div class="ca-detail"><div class="ca-row-header"><span class="ca-label-tag ca-color-ndc2"><i class="fa-solid fa-pills" style="margin-right:.3rem"></i>Product Code</span>' +
+        '<span class="ndc-format-tag">' + e(anatomy.product.length) + ' digits</span></div>' +
+        '<div class="ca-row-title">Product ' + e(anatomy.product) + '</div>' +
+        '<div class="ca-row-sub">Identifies the specific drug formulation — <strong>strength</strong>, <strong>dosage form</strong>, and <strong>active ingredient(s)</strong></div></div></div>';
+
+      // Row 3: Package Code
+      const pkgTitle = 'Package ' + e(anatomy.pkg);
+      const pkgSub = anatomy.packageHint
+        ? e(anatomy.packageHint) + ' — identifies the <strong>package size</strong> and <strong>type</strong> (bottle, blister, vial, etc.)'
+        : 'Identifies the <strong>package size</strong> and <strong>type</strong> (bottle, blister, vial, carton, etc.)';
+      rows += '<div class="ca-row" style="background:linear-gradient(135deg,rgba(16,185,129,.06),rgba(139,92,246,.04));border-radius:10px;padding:.55rem .1rem;animation-delay:160ms">' +
+        '<div class="ca-connector"><span class="ca-dot" style="background:#059669"></span></div>' +
+        '<div class="ca-detail"><div class="ca-row-header"><span class="ca-label-tag ca-color-ndc3"><i class="fa-solid fa-box" style="margin-right:.3rem"></i>Package Code</span>' +
+        '<span class="ndc-format-tag">' + e(anatomy.pkg.length) + ' digit' + (anatomy.pkg.length > 1 ? 's' : '') + '</span></div>' +
+        '<div class="ca-row-title">' + pkgTitle + '</div>' +
+        '<div class="ca-row-sub">' + pkgSub + '</div></div></div>';
+
+      // Visual segment display (colored segments with dashes)
+      const visual = '<div class="ca-visual">' +
+        '<span class="ca-seg ca-seg-ndc1">' + e(anatomy.labeler) + '</span>' +
+        '<span class="ca-seg-ndc-dash">-</span>' +
+        '<span class="ca-seg ca-seg-ndc2">' + e(anatomy.product) + '</span>' +
+        '<span class="ca-seg-ndc-dash">-</span>' +
+        '<span class="ca-seg ca-seg-ndc3">' + e(anatomy.pkg) + '</span>' +
+        '</div>';
+
+      // Specificity / format indicator
+      const isHipaa = anatomy.totalDigits === 11;
+      const specLabel = isHipaa ? '11-digit HIPAA/billing format (5-4-2)' : 'FDA ' + anatomy.formatName;
+      const specBar = isHipaa ? 100 : (anatomy.totalDigits === 10 ? 90 : 70);
+      const specHtml = '<div class="ca-spec" style="animation-delay:250ms">' +
+        '<div class="ca-spec-header"><span class="ca-spec-icon"><i class="fa-solid fa-barcode"></i></span>' +
+        '<span class="ca-spec-title">NDC Format</span></div>' +
+        '<div class="ca-spec-bar-track"><div class="ca-spec-bar-fill" style="width:' + specBar + '%"></div></div>' +
+        '<span class="ca-spec-label">' + e(specLabel) + '</span>' +
+        (isHipaa ? '<span class="ca-spec-hint">This is the standard 11-digit format used for billing, claims, and HIPAA transactions (zero-padded to 5-4-2).</span>' : '') +
+        (!isHipaa && anatomy.totalDigits === 10 ? '<span class="ca-spec-hint">10-digit FDA format (' + e(anatomy.format) + '). For billing/HIPAA, zero-pad to 11-digit 5-4-2 format.</span>' : '') +
+        '</div>';
+
+      return '<div class="ca-card">' +
+        '<button type="button" class="ca-toggle" id="caToggleBtn">' +
+        '<span class="ca-toggle-title">\u{1F9EC} Code Anatomy</span>' +
+        '<span class="ca-badge">NDC</span>' +
+        '<i class="fa-solid fa-chevron-down ca-chevron"></i></button>' +
+        '<div id="caContent">' +
+        '<div class="ndc-anatomy-info"><i class="fa-solid fa-circle-info"></i>' +
+        '<span>The NDC (National Drug Code) is a <strong>3-segment</strong> identifier: ' +
+        '<strong style="color:#7c3aed">Labeler</strong> (manufacturer) \u2013 ' +
+        '<strong style="color:#2563eb">Product</strong> (drug/strength/form) \u2013 ' +
+        '<strong style="color:#059669">Package</strong> (size/type). ' +
+        'The format shown is <strong>' + e(anatomy.formatName) + '</strong>.</span></div>' +
+        visual +
+        '<div class="ca-rows">' + rows + '</div>' +
+        specHtml +
+        '</div></div>';
+    }
+
+    /* ---- HCC Risk Adjustment (V28 only — PY2026 = 100% V28) ---- */
     // Slim format: code -> v28_hcc (number or array of numbers)
     const _HCC_RAW = HCC_SLIM_DATA;
     const _HCC_DESCS = HCC_DESC_DATA;
@@ -1327,7 +2306,7 @@ const HCC_RAF_DATA = {"community":{"1":0.301,"2":0.5,"6":0.381,"17":4.209,"18":2
       if (isDrug) lastDrugResult = { data, codeType, code: code || data.code_value };
       else lastDrugResult = null;
       const conversionHtml = isDrug ? buildConversionSection(codeType, data.display_name, codeVal) : "";
-      const anatomyHtml = codeType === "ICD" ? buildCodeAnatomy(data.code_value || code, data.display_name) : (codeType === "ATC" ? buildAtcAnatomy(data.code_value || code, data.display_name, data.atc_class_name || "") : "");
+      const anatomyHtml = codeType === "ICD" ? buildCodeAnatomy(data.code_value || code, data.display_name) : (codeType === "ATC" ? buildAtcAnatomy(data.code_value || code, data.display_name, data.atc_class_name || "") : (codeType === "SNOMED" ? buildSnomedAnatomy(data.code_value || code, data.display_name) : (codeType === "RXCUI" ? buildRxcuiAnatomy(data.code_value || code, data.display_name, data.term_type || "") : (codeType === "LOINC" ? buildLoincAnatomy(data.code_value || code, data.display_name) : (codeType === "CPT" ? buildCptAnatomy(data.code_value || code, data.display_name) : (codeType === "HCPCS" ? buildHcpcsAnatomy(data.code_value || code, data.display_name) : (codeType === "NDC" ? buildNdcAnatomy(data.code_value || code, data.display_name) : "")))))));
       const hccInlineHtml = codeType === "ICD" ? buildHccInline(data.code_value || code) : "";
       const hccHtml = codeType === "ICD" ? buildHccSection(data.code_value || code) : "";
       document.getElementById("resultContainer").innerHTML = `
@@ -1346,6 +2325,9 @@ const HCC_RAF_DATA = {"community":{"1":0.301,"2":0.5,"6":0.381,"17":4.209,"18":2
       if (isDrug) bindConversionButtons();
       if (anatomyHtml) bindCodeAnatomyToggle();
       if (anatomyHtml && codeType === "ATC") enrichAtcAnatomy(data.code_value || code);
+      if (anatomyHtml && codeType === "SNOMED") enrichSnomedAnatomy(data.code_value || code, data.display_name);
+      if (anatomyHtml && codeType === "RXCUI") enrichRxcuiAnatomy(data.code_value || code, data.term_type || "");
+      if (anatomyHtml && codeType === "LOINC") enrichLoincAnatomy(data.code_value || code);
       if (hccHtml) { bindHccToggle(); bindHccInlineClick(); }
     }
 
@@ -2481,7 +3463,7 @@ const HCC_RAF_DATA = {"community":{"1":0.301,"2":0.5,"6":0.381,"17":4.209,"18":2
             if (isDrug) lastDrugResult = { data: result, codeType: detectedKey, code: code || result.code_value };
             else lastDrugResult = null;
             const conversionHtml = isDrug ? buildConversionSection(detectedKey, result.display_name, codeVal) : "";
-            const anatomyHtml = detectedKey === "ICD" ? buildCodeAnatomy(result.code_value || code, result.display_name) : (detectedKey === "ATC" ? buildAtcAnatomy(result.code_value || code, result.display_name, result.atc_class_name || "") : "");
+            const anatomyHtml = detectedKey === "ICD" ? buildCodeAnatomy(result.code_value || code, result.display_name) : (detectedKey === "ATC" ? buildAtcAnatomy(result.code_value || code, result.display_name, result.atc_class_name || "") : (detectedKey === "SNOMED" ? buildSnomedAnatomy(result.code_value || code, result.display_name) : (detectedKey === "RXCUI" ? buildRxcuiAnatomy(result.code_value || code, result.display_name, result.term_type || "") : (detectedKey === "LOINC" ? buildLoincAnatomy(result.code_value || code, result.display_name) : (detectedKey === "CPT" ? buildCptAnatomy(result.code_value || code, result.display_name) : (detectedKey === "HCPCS" ? buildHcpcsAnatomy(result.code_value || code, result.display_name) : (detectedKey === "NDC" ? buildNdcAnatomy(result.code_value || code, result.display_name) : "")))))));
             const hccInlineHtml = detectedKey === "ICD" ? buildHccInline(result.code_value || code) : "";
             const hccHtml = detectedKey === "ICD" ? buildHccSection(result.code_value || code) : "";
             container.innerHTML = bannerHtml + `
@@ -2500,6 +3482,9 @@ const HCC_RAF_DATA = {"community":{"1":0.301,"2":0.5,"6":0.381,"17":4.209,"18":2
             if (isDrug) bindConversionButtons();
             if (anatomyHtml) bindCodeAnatomyToggle();
             if (anatomyHtml && detectedKey === "ATC") enrichAtcAnatomy(result.code_value || code);
+            if (anatomyHtml && detectedKey === "SNOMED") enrichSnomedAnatomy(result.code_value || code, result.display_name);
+            if (anatomyHtml && detectedKey === "RXCUI") enrichRxcuiAnatomy(result.code_value || code, result.term_type || "");
+            if (anatomyHtml && detectedKey === "LOINC") enrichLoincAnatomy(result.code_value || code);
             if (hccHtml) { bindHccToggle(); bindHccInlineClick(); }
             // Update edu card to match detected type
             updateEduCardForType(detectedKey);
@@ -2901,4 +3886,3 @@ const HCC_RAF_DATA = {"community":{"1":0.301,"2":0.5,"6":0.381,"17":4.209,"18":2
   </script>
 </body>
 </html>
-
