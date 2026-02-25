@@ -788,6 +788,10 @@ const HCC_RAF_DATA = {"community":{"1":0.301,"2":0.5,"6":0.381,"17":4.209,"18":2
         buttons.push({ target: "RXCUI", label: "View RxCUI" });
       } else if (codeType === "ATC") {
         buttons.push({ target: "RXCUI", label: "View RxCUI Codes" });
+      } else if (codeType === "ICD") {
+        buttons.push({ target: "SNOMED", label: "View SNOMED CT Codes" });
+      } else if (codeType === "SNOMED") {
+        buttons.push({ target: "ICD10", label: "View ICD-10 Codes" });
       }
       if (buttons.length === 0) return "";
       const btnHtml = buttons.map(b => `<button type="button" class="chip conversion-btn" data-conversion-target="${escapeHtml(b.target)}">🔄 ${escapeHtml(b.label)}</button>`).join("");
@@ -2303,9 +2307,10 @@ const HCC_RAF_DATA = {"community":{"1":0.301,"2":0.5,"6":0.381,"17":4.209,"18":2
       const categoryBlock = category ? `<p class="source-label">Category</p><p class="source-value">${category}</p>` : "";
       const rxcuiBlock = rxcui ? `<p class="source-label">RxCUI</p><p class="source-value">${rxcui}</p>` : "";
       const isDrug = codeType === "RXCUI" || codeType === "NDC" || codeType === "ATC";
-      if (isDrug) lastDrugResult = { data, codeType, code: code || data.code_value };
+      const hasConversion = isDrug || codeType === "ICD" || codeType === "SNOMED";
+      if (hasConversion) lastDrugResult = { data, codeType, code: code || data.code_value };
       else lastDrugResult = null;
-      const conversionHtml = isDrug ? buildConversionSection(codeType, data.display_name, codeVal) : "";
+      const conversionHtml = hasConversion ? buildConversionSection(codeType, data.display_name, codeVal) : "";
       const anatomyHtml = codeType === "ICD" ? buildCodeAnatomy(data.code_value || code, data.display_name) : (codeType === "ATC" ? buildAtcAnatomy(data.code_value || code, data.display_name, data.atc_class_name || "") : (codeType === "SNOMED" ? buildSnomedAnatomy(data.code_value || code, data.display_name) : (codeType === "RXCUI" ? buildRxcuiAnatomy(data.code_value || code, data.display_name, data.term_type || "") : (codeType === "LOINC" ? buildLoincAnatomy(data.code_value || code, data.display_name) : (codeType === "CPT" ? buildCptAnatomy(data.code_value || code, data.display_name) : (codeType === "HCPCS" ? buildHcpcsAnatomy(data.code_value || code, data.display_name) : (codeType === "NDC" ? buildNdcAnatomy(data.code_value || code, data.display_name) : "")))))));
       const hccInlineHtml = codeType === "ICD" ? buildHccInline(data.code_value || code) : "";
       const hccHtml = codeType === "ICD" ? buildHccSection(data.code_value || code) : "";
@@ -2322,7 +2327,7 @@ const HCC_RAF_DATA = {"community":{"1":0.301,"2":0.5,"6":0.381,"17":4.209,"18":2
           <p class="source-label">Source</p>
           <p class="source-value">${source}</p>
         </div>${conversionHtml}${anatomyHtml}${hccHtml}`;
-      if (isDrug) bindConversionButtons();
+      if (hasConversion) bindConversionButtons();
       if (anatomyHtml) bindCodeAnatomyToggle();
       if (anatomyHtml && codeType === "ATC") enrichAtcAnatomy(data.code_value || code);
       if (anatomyHtml && codeType === "SNOMED") enrichSnomedAnatomy(data.code_value || code, data.display_name);
@@ -3104,6 +3109,98 @@ const HCC_RAF_DATA = {"community":{"1":0.301,"2":0.5,"6":0.381,"17":4.209,"18":2
       return Array.isArray(rxnormIds) ? rxnormIds.map(String) : [String(rxnormIds)];
     }
 
+    /* ---- ICD-10 ↔ SNOMED CT Bidirectional Conversion ---- */
+    const SNOMED_ICD_REFSET = "447562003"; // SNOMED CT to ICD-10 Map reference set
+
+    async function fetchSnomedToIcd10(snomedCode) {
+      const path = `/MAIN/members?referenceSet=${SNOMED_ICD_REFSET}&referencedComponentId=${encodeURIComponent(snomedCode)}&active=true&limit=50`;
+      let data = null;
+      for (const base of SNOMED_BASES) {
+        data = await fetchJsonWithTimeout(base + path, SNOMED_REQUEST_MS);
+        if (data && data.items) break;
+      }
+      if (!data || !data.items) {
+        for (const base of SNOMED_BASES) {
+          data = await fetchJsonWithProxy(base + path);
+          if (data && data.items) break;
+        }
+      }
+      if (!data || !Array.isArray(data.items) || data.items.length === 0) return null;
+
+      // Group by mapGroup, pick highest priority (lowest number) per group
+      const groups = {};
+      data.items.forEach(item => {
+        const af = item.additionalFields || {};
+        const grp = af.mapGroup || "1";
+        const pri = parseInt(af.mapPriority || "1", 10);
+        const target = (af.mapTarget || "").trim();
+        if (!target) return;
+        if (!groups[grp] || pri < groups[grp].priority) {
+          groups[grp] = { code: target, priority: pri, advice: (af.mapAdvice || "").trim() };
+        }
+      });
+
+      const icdCodes = Object.values(groups).map(g => g.code).filter(c => c && c !== "");
+      if (icdCodes.length === 0) return null;
+
+      // Fetch ICD-10 descriptions in parallel
+      const results = await Promise.all(icdCodes.map(async (icdCode) => {
+        try {
+          const icdResult = await fetchIcd(icdCode);
+          return { code: icdCode, name: icdResult ? icdResult.display_name : "" };
+        } catch (_) {
+          return { code: icdCode, name: "" };
+        }
+      }));
+      return results;
+    }
+
+    async function fetchIcd10ToSnomed(icd10Code) {
+      const normalized = icd10Code.toUpperCase().replace(/\s/g, "").replace(/\./g, "");
+      // Try with dot first (e.g., E11.9), then without (E119)
+      const variants = [icd10Code.toUpperCase().trim()];
+      if (icd10Code.includes(".")) {
+        variants.push(normalized);
+      } else if (normalized.length > 3) {
+        variants.push(normalized.substring(0, 3) + "." + normalized.substring(3));
+      }
+
+      let data = null;
+      for (const variant of variants) {
+        const path = `/MAIN/members?referenceSet=${SNOMED_ICD_REFSET}&mapTarget=${encodeURIComponent(variant)}&active=true&limit=50`;
+        for (const base of SNOMED_BASES) {
+          data = await fetchJsonWithTimeout(base + path, SNOMED_REQUEST_MS);
+          if (data && data.items && data.items.length > 0) break;
+        }
+        if (data && data.items && data.items.length > 0) break;
+        for (const base of SNOMED_BASES) {
+          data = await fetchJsonWithProxy(base + path);
+          if (data && data.items && data.items.length > 0) break;
+        }
+        if (data && data.items && data.items.length > 0) break;
+      }
+
+      if (!data || !Array.isArray(data.items) || data.items.length === 0) return null;
+
+      // Deduplicate by concept ID, extract preferred term
+      const seen = new Set();
+      const results = [];
+      data.items.forEach(item => {
+        const conceptId = item.referencedComponentId;
+        if (!conceptId || seen.has(conceptId)) return;
+        seen.add(conceptId);
+        const rc = item.referencedComponent || {};
+        const pt = rc.pt || {};
+        const fsn = rc.fsn || {};
+        const term = (pt.term || fsn.term || "").trim();
+        results.push({ code: conceptId, name: term });
+      });
+
+      // Sort by concept ID for consistency
+      results.sort((a, b) => a.name.localeCompare(b.name));
+      return results.length > 0 ? results : null;
+    }
+
     function showCopiedToast(message) {
       const el = document.getElementById("copiedToast");
       if (!el) return;
@@ -3326,6 +3423,18 @@ const HCC_RAF_DATA = {"community":{"1":0.301,"2":0.5,"6":0.381,"17":4.209,"18":2
                 }));
                 renderConversionResult(data, "RXCUI", withNames, "RxCUI Codes");
               } else showConversionEmpty();
+            } else if (target === "SNOMED" && codeType === "ICD") {
+              btn.innerHTML = "<span class=\"spinner\" style=\"border-width:2px;width:0.75rem;height:0.75rem;\"></span> Converting to SNOMED CT...";
+              const snomedList = await fetchIcd10ToSnomed(origCode);
+              if (snomedList && snomedList.length > 0) {
+                renderConversionResult(data, "SNOMED CT", snomedList, snomedList.length === 1 ? "SNOMED CT Concept" : "SNOMED CT Concepts (" + snomedList.length + ")");
+              } else showConversionEmpty("No SNOMED CT mapping found for this ICD-10 code.");
+            } else if (target === "ICD10" && codeType === "SNOMED") {
+              btn.innerHTML = "<span class=\"spinner\" style=\"border-width:2px;width:0.75rem;height:0.75rem;\"></span> Converting to ICD-10...";
+              const icdList = await fetchSnomedToIcd10(origCode);
+              if (icdList && icdList.length > 0) {
+                renderConversionResult(data, "ICD-10", icdList, icdList.length === 1 ? "ICD-10 Code" : "ICD-10 Codes");
+              } else showConversionEmpty("No ICD-10 mapping found for this SNOMED CT concept.");
             } else {
               showConversionEmpty();
             }
@@ -3460,9 +3569,10 @@ const HCC_RAF_DATA = {"community":{"1":0.301,"2":0.5,"6":0.381,"17":4.209,"18":2
             const categoryBlock = category ? `<p class="source-label">Category</p><p class="source-value">${category}</p>` : "";
             const rxcuiBlock = rxcui ? `<p class="source-label">RxCUI</p><p class="source-value">${rxcui}</p>` : "";
             const isDrug = detectedKey === "RXCUI" || detectedKey === "NDC" || detectedKey === "ATC";
-            if (isDrug) lastDrugResult = { data: result, codeType: detectedKey, code: code || result.code_value };
+            const hasConversion = isDrug || detectedKey === "ICD" || detectedKey === "SNOMED";
+            if (hasConversion) lastDrugResult = { data: result, codeType: detectedKey, code: code || result.code_value };
             else lastDrugResult = null;
-            const conversionHtml = isDrug ? buildConversionSection(detectedKey, result.display_name, codeVal) : "";
+            const conversionHtml = hasConversion ? buildConversionSection(detectedKey, result.display_name, codeVal) : "";
             const anatomyHtml = detectedKey === "ICD" ? buildCodeAnatomy(result.code_value || code, result.display_name) : (detectedKey === "ATC" ? buildAtcAnatomy(result.code_value || code, result.display_name, result.atc_class_name || "") : (detectedKey === "SNOMED" ? buildSnomedAnatomy(result.code_value || code, result.display_name) : (detectedKey === "RXCUI" ? buildRxcuiAnatomy(result.code_value || code, result.display_name, result.term_type || "") : (detectedKey === "LOINC" ? buildLoincAnatomy(result.code_value || code, result.display_name) : (detectedKey === "CPT" ? buildCptAnatomy(result.code_value || code, result.display_name) : (detectedKey === "HCPCS" ? buildHcpcsAnatomy(result.code_value || code, result.display_name) : (detectedKey === "NDC" ? buildNdcAnatomy(result.code_value || code, result.display_name) : "")))))));
             const hccInlineHtml = detectedKey === "ICD" ? buildHccInline(result.code_value || code) : "";
             const hccHtml = detectedKey === "ICD" ? buildHccSection(result.code_value || code) : "";
@@ -3479,7 +3589,7 @@ const HCC_RAF_DATA = {"community":{"1":0.301,"2":0.5,"6":0.381,"17":4.209,"18":2
                 <p class="source-label">Source</p>
                 <p class="source-value">${source}</p>
               </div>${conversionHtml}${anatomyHtml}${hccHtml}`;
-            if (isDrug) bindConversionButtons();
+            if (hasConversion) bindConversionButtons();
             if (anatomyHtml) bindCodeAnatomyToggle();
             if (anatomyHtml && detectedKey === "ATC") enrichAtcAnatomy(result.code_value || code);
             if (anatomyHtml && detectedKey === "SNOMED") enrichSnomedAnatomy(result.code_value || code, result.display_name);
