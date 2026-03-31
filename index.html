@@ -494,6 +494,33 @@
     .hcc-inline .hcc-i-arrow{margin-left:auto;font-size:.7rem;opacity:.6;transition:transform .2s}
     .hcc-inline:hover .hcc-i-arrow{transform:translateX(2px)}
     @media(max-width:640px){.ca-visual{font-size:1.5rem}.edu-card-grid{grid-template-columns:1fr}.input-row{flex-direction:column}.input-row input[type="text"]{min-width:100%}.conversion-buttons{flex-direction:column}.conversion-buttons .chip{width:100%}.search-by-name-section{padding:1.25rem}}
+    /* ---- Bulk Analyze ---- */
+    #bulkAnalyzeSection{display:none}
+    .bulk-section{background:var(--c-card);border:1px solid var(--c-card-border);border-radius:16px;padding:1.75rem 2rem;margin-bottom:1.75rem;box-shadow:0 4px 16px var(--c-card-shadow)}
+    html.dark .bulk-section{backdrop-filter:blur(16px)}
+    .bulk-section h2{font-size:1.3rem;font-weight:700;color:var(--c-text);margin:0 0 .4rem 0}
+    .bulk-section .subtitle{color:var(--c-text-muted);font-size:.9rem;margin-bottom:1.25rem}
+    #bulkTextarea{width:100%;min-height:120px;padding:.9rem 1.15rem;font-size:.95rem;font-family:inherit;font-weight:500;border:1px solid var(--c-input-border);border-radius:12px;background:var(--c-input-bg);color:var(--c-input-fg);box-sizing:border-box;resize:vertical;transition:all .25s}
+    #bulkTextarea::placeholder{color:var(--c-text-dim)}
+    #bulkTextarea:focus{outline:none;border-color:var(--c-primary);box-shadow:0 0 0 3px rgba(139,92,246,.15)}
+    .bulk-actions{display:flex;gap:.75rem;align-items:center;margin-top:1rem;flex-wrap:wrap}
+    .bulk-count{font-size:.85rem;color:var(--c-text-dim);margin-left:auto}
+    .bulk-table-wrap{margin-top:1.25rem;overflow-x:auto;border-radius:12px;border:1px solid var(--c-card-border)}
+    .bulk-table{width:100%;border-collapse:collapse;font-size:.9rem}
+    .bulk-table th{text-align:left;padding:.75rem 1rem;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--c-text-dim);background:var(--c-primary-soft);border-bottom:1px solid var(--c-card-border)}
+    .bulk-table td{padding:.65rem 1rem;border-bottom:1px solid var(--c-card-border);color:var(--c-text);vertical-align:top}
+    .bulk-table tr:last-child td{border-bottom:none}
+    .bulk-table tr:hover td{background:var(--c-primary-soft)}
+    .bulk-code{font-weight:700;color:var(--c-primary);white-space:nowrap;font-family:'Inter',monospace;letter-spacing:.3px}
+    .bulk-not-found{color:var(--c-text-dim);font-style:italic}
+    .bulk-raf{font-weight:700;font-family:'Inter',monospace}
+    .bulk-raf.ra{color:#16a34a}html.dark .bulk-raf.ra{color:#4ade80}
+    .bulk-raf.not-ra{color:var(--c-text-dim)}
+    .bulk-hcc-tag{font-size:.75rem;color:var(--c-badge-fg);background:var(--c-badge-bg);padding:.15rem .5rem;border-radius:5px;margin-left:.4rem;font-weight:600}
+    .bulk-summary{display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem;padding:1rem;border-radius:10px;background:var(--c-primary-soft);border:1px solid var(--c-chip-border)}
+    .bulk-summary-stat{text-align:center;flex:1;min-width:100px}
+    .bulk-summary-stat .bss-val{font-size:1.5rem;font-weight:800;color:var(--c-primary);display:block}
+    .bulk-summary-stat .bss-label{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--c-text-dim)}
   </style>
 </head>
 <body class="font-sans min-h-screen bg-white dark:bg-[#0B0A1A] text-gray-900 dark:text-gray-100 transition-colors duration-300">
@@ -557,6 +584,19 @@
       </div>
       <div id="searchResults" class="search-results" style="display:none;" role="listbox" aria-label="Search results"></div>
     </section>
+
+    <section id="bulkAnalyzeSection" class="bulk-section" aria-label="Bulk ICD-10 Analysis">
+      <h2><i class="fa-solid fa-list-check" style="color:var(--c-primary);margin-right:.5rem"></i>Bulk ICD-10 Analysis</h2>
+      <p class="subtitle">Paste a list of ICD-10 codes to get descriptions and RAF scores in one table.</p>
+      <textarea id="bulkTextarea" placeholder="Paste ICD codes here — separated by commas, spaces, or newlines&#10;e.g. E11.9, I10, J45.20, F32.1, N18.3" spellcheck="false"></textarea>
+      <div class="bulk-actions">
+        <button type="button" class="btn" id="bulkRunBtn"><i class="fa-solid fa-table-list mr-2 text-sm"></i>Analyze</button>
+        <button type="button" class="chip" id="bulkClearBtn">Clear</button>
+        <span class="bulk-count" id="bulkCodeCount"></span>
+      </div>
+      <div id="bulkResultArea"></div>
+    </section>
+
     <div id="copiedToast" class="copied-toast" aria-live="polite" role="status">Copied!</div>
 
     <aside class="mt-10 p-6 rounded-2xl bg-white dark:bg-white/[0.06] border border-gray-200 dark:border-white/10 shadow-sm dark:shadow-none dark:backdrop-blur-xl">
@@ -2664,8 +2704,17 @@ const HCC_RAF_DATA = {"community":{"1":0.301,"2":0.5,"6":0.381,"17":4.209,"18":2
       return null;
     }
 
+    /** Normalize ICD-10 code: uppercase, insert dot after 3rd char if missing. E.g. "F0390" → "F03.90" */
+    function normalizeIcd10(code) {
+      let c = code.toUpperCase().replace(/\s/g, '').trim();
+      if (c.length > 3 && !c.includes('.')) {
+        c = c.slice(0, 3) + '.' + c.slice(3);
+      }
+      return c;
+    }
+
     async function fetchIcd(code) {
-      code = code.toUpperCase().replace(/\s/g, "").trim();
+      code = normalizeIcd10(code);
       const nlm = await fetchIcdNlm(code);
       if (nlm) return nlm;
       return await fetchIcdWho(code);
@@ -2964,6 +3013,179 @@ const HCC_RAF_DATA = {"community":{"1":0.301,"2":0.5,"6":0.381,"17":4.209,"18":2
       return results;
     }
 
+    // =====================================================================
+    //  DFG-based Route Resolution & ATC Prefix Matrix
+    //
+    //  Architecture:
+    //    1. fetchRouteInfo(rxcui)    — fetches DFG (Dose Form Group) names
+    //                                   from RxNorm in a single API call.
+    //    2. resolveRoute(dfgNames)   — maps DFG names to a canonical route.
+    //    3. filterAtcByRoute(codes, route) — strict positive/negative prefix
+    //                                   filter using the Route→ATC matrix.
+    //
+    //  DFG is RxNorm's canonical route classification (e.g. "Topical Product",
+    //  "Ophthalmic Product"). It is route-based, not form-based, so "Vaginal
+    //  Cream" → DFG "Vaginal Product", not "Topical Product".
+    // =====================================================================
+
+    /** Fetch DFG names for an RxCUI. Returns array of strings, e.g. ["Nasal Product","Inhalant Product"]. */
+    async function fetchRouteInfo(rxcui) {
+      try {
+        const url = `${RXNAV_REST}/rxcui/${rxcui}/related.json?tty=DFG`;
+        const data = await fetchJsonExternal(url);
+        if (!data || !data.relatedGroup || !data.relatedGroup.conceptGroup) return [];
+        const groups = Array.isArray(data.relatedGroup.conceptGroup) ? data.relatedGroup.conceptGroup : [data.relatedGroup.conceptGroup];
+        const names = [];
+        for (const g of groups) {
+          if (g.tty !== 'DFG') continue;
+          const props = g.conceptProperties;
+          const list = Array.isArray(props) ? props : (props ? [props] : []);
+          for (const p of list) { if (p && p.name) names.push(p.name); }
+        }
+        return names;
+      } catch (_) { return []; }
+    }
+
+    /** Canonical route identifiers. */
+    const ROUTE = {
+      TOPICAL:      'topical',
+      OPHTHALMIC:   'ophthalmic',
+      OTIC:         'otic',
+      NASAL:        'nasal',
+      INHALANT:     'inhalant',
+      VAGINAL:      'vaginal',
+      RECTAL:       'rectal',
+      ORAL:         'oral',
+      INJECTABLE:   'injectable',
+      TRANSDERMAL:  'transdermal',
+      BUCCAL:       'buccal',
+      SUBLINGUAL:   'sublingual',
+      UNKNOWN:      'unknown',
+    };
+
+    /** Map DFG name → canonical route. */
+    const DFG_ROUTE_MAP = {
+      'Topical Product':       ROUTE.TOPICAL,
+      'Ophthalmic Product':    ROUTE.OPHTHALMIC,
+      'Otic Product':          ROUTE.OTIC,
+      'Nasal Product':         ROUTE.NASAL,
+      'Inhalant Product':      ROUTE.INHALANT,
+      'Vaginal Product':       ROUTE.VAGINAL,
+      'Rectal Product':        ROUTE.RECTAL,
+      'Oral Product':          ROUTE.ORAL,
+      'Injectable Product':    ROUTE.INJECTABLE,
+      'Transdermal Product':   ROUTE.TRANSDERMAL,
+      'Buccal Product':        ROUTE.BUCCAL,
+      'Sublingual Product':    ROUTE.SUBLINGUAL,
+      'Dental Product':        ROUTE.BUCCAL,
+      'Urethral Product':      ROUTE.TOPICAL,
+      'Mucosal Product':       ROUTE.TOPICAL,
+    };
+
+    /**
+     * DFG priority — when multiple DFGs are returned (e.g. "Nasal Product" +
+     * "Inhalant Product"), pick the most specific route. Lower index = higher
+     * priority. Routes not listed here have lowest priority.
+     */
+    const DFG_PRIORITY = [
+      ROUTE.OPHTHALMIC, ROUTE.OTIC, ROUTE.NASAL, ROUTE.VAGINAL,
+      ROUTE.RECTAL, ROUTE.BUCCAL, ROUTE.SUBLINGUAL, ROUTE.INHALANT,
+      ROUTE.TOPICAL, ROUTE.TRANSDERMAL, ROUTE.ORAL, ROUTE.INJECTABLE,
+    ];
+
+    /**
+     * Resolve DFG names into a single canonical route.
+     * If multiple DFGs are present, the most specific one wins (by DFG_PRIORITY).
+     */
+    function resolveRoute(dfgNames) {
+      if (!dfgNames || dfgNames.length === 0) return ROUTE.UNKNOWN;
+      const routes = dfgNames.map(n => DFG_ROUTE_MAP[n]).filter(Boolean);
+      if (routes.length === 0) return ROUTE.UNKNOWN;
+      if (routes.length === 1) return routes[0];
+      // Multiple routes — pick highest priority (lowest index in DFG_PRIORITY)
+      routes.sort((a, b) => {
+        const ia = DFG_PRIORITY.indexOf(a);
+        const ib = DFG_PRIORITY.indexOf(b);
+        return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+      });
+      console.log(`[RxCUI→ATC] Multiple DFGs: [${dfgNames.join(', ')}] → resolved to route: ${routes[0]}`);
+      return routes[0];
+    }
+
+    /**
+     * Route → ATC Prefix Matrix.
+     *
+     * For LOCAL routes (topical, ophthalmic, etc.): `allow` lists the ONLY
+     * ATC prefixes that may be returned. Everything else is removed.
+     *
+     * For SYSTEMIC routes (oral, injectable, etc.): `exclude` lists local/
+     * route-specific ATC prefixes that must be removed. Everything else passes.
+     *
+     * Based on the WHO ATC hierarchy and the user's specification.
+     */
+    const ROUTE_ATC_MATRIX = {
+      [ROUTE.TOPICAL]:     { mode: 'allow', prefixes: ['D', 'M02', 'N01B', 'C05'] },
+      [ROUTE.OPHTHALMIC]:  { mode: 'allow', prefixes: ['S01', 'S03'] },
+      [ROUTE.OTIC]:        { mode: 'allow', prefixes: ['S02', 'S03'] },
+      [ROUTE.NASAL]:       { mode: 'allow', prefixes: ['R01'] },
+      [ROUTE.INHALANT]:    { mode: 'allow', prefixes: ['R03'] },
+      [ROUTE.VAGINAL]:     { mode: 'allow', prefixes: ['G01', 'G02', 'G03'] },
+      [ROUTE.RECTAL]:      { mode: 'allow', prefixes: ['A07', 'C05'] },
+      [ROUTE.BUCCAL]:      { mode: 'allow', prefixes: ['A01'] },
+      [ROUTE.ORAL]:        { mode: 'exclude', prefixes: ['A01', 'C05', 'D', 'G01', 'G02', 'G03', 'M02', 'R01', 'S01', 'S02', 'S03'] },
+      [ROUTE.INJECTABLE]:  { mode: 'exclude', prefixes: ['A01', 'C05', 'D', 'G01', 'G02', 'G03', 'M02', 'R01', 'R03', 'S01', 'S02', 'S03'] },
+      [ROUTE.TRANSDERMAL]: { mode: 'exclude', prefixes: ['A01', 'C05', 'D', 'G01', 'G02', 'G03', 'M02', 'R01', 'R03', 'S01', 'S02', 'S03'] },
+      [ROUTE.SUBLINGUAL]:  { mode: 'exclude', prefixes: ['A01', 'C05', 'D', 'G01', 'G02', 'G03', 'M02', 'R01', 'R03', 'S01', 'S02', 'S03'] },
+    };
+    // Sort each prefix list longest-first for correct matching (R03 before R, S03 before S, etc.)
+    for (const rule of Object.values(ROUTE_ATC_MATRIX)) {
+      rule.prefixes.sort((a, b) => b.length - a.length);
+    }
+
+    /**
+     * Check if an ATC code starts with any prefix in a list.
+     * Prefixes must be sorted longest-first for correct matching.
+     */
+    function matchesAnyPrefix(atcCode, prefixes) {
+      const c = atcCode.toUpperCase();
+      return prefixes.some(p => c.startsWith(p));
+    }
+
+    /**
+     * Filter ATC codes by the drug's resolved route using the Route→ATC Matrix.
+     *
+     * - For local routes: strict positive match — ONLY codes starting with an
+     *   allowed prefix survive. All others (systemic, other local) are removed.
+     * - For systemic routes: negative match — codes starting with excluded
+     *   (local) prefixes are removed. All others pass through.
+     * - For UNKNOWN route: returns the full list unfiltered.
+     * - Safety: falls back to the full list if filtering would remove everything.
+     */
+    function filterAtcByRoute(atcCodes, route) {
+      if (atcCodes.length <= 1 || route === ROUTE.UNKNOWN) return atcCodes;
+      const rule = ROUTE_ATC_MATRIX[route];
+      if (!rule) return atcCodes;
+
+      const filtered = atcCodes.filter(code => {
+        const c = (typeof code === 'string' ? code : code.code || '').toUpperCase();
+        if (rule.mode === 'allow') {
+          const ok = matchesAnyPrefix(c, rule.prefixes);
+          if (!ok) console.log(`[RxCUI→ATC] Filtering out ${c}: not in allowed prefixes for route "${route}"`);
+          return ok;
+        } else {
+          const blocked = matchesAnyPrefix(c, rule.prefixes);
+          if (blocked) console.log(`[RxCUI→ATC] Filtering out ${c}: excluded local prefix for systemic route "${route}"`);
+          return !blocked;
+        }
+      });
+
+      if (filtered.length === 0) {
+        console.log(`[RxCUI→ATC] Route filter removed all codes for route "${route}" — falling back to unfiltered list`);
+        return atcCodes;
+      }
+      return filtered;
+    }
+
     /** Get ingredient RxCUIs for a drug (for matching in ATC class members). */
     async function fetchIngredientRxcuis(rxcui) {
       const url = `${RXNAV_REST}/rxcui/${rxcui}/related.json?tty=IN`;
@@ -3010,19 +3232,85 @@ const HCC_RAF_DATA = {"community":{"1":0.301,"2":0.5,"6":0.381,"17":4.209,"18":2
       return level5List.length > 0 ? level5List : null;
     }
 
+    /**
+     * RxCUI → ATC conversion.
+     *
+     * Three-tier strategy:
+     *
+     *   1. ATCPROD (primary) — queries the RxClass API with relaSource=ATCPROD,
+     *      which maps the specific clinical drug product (SCD/SBD) to its exact
+     *      ATC Level 4 code. This is the WHO-authoritative product-level mapping
+     *      that accounts for route/dose form natively. Returns a single, correct
+     *      ATC class in most cases.
+     *
+     *   2. Ingredient ATC + DFG route filter (fallback) — if ATCPROD has no data
+     *      for this RxCUI, falls back to the ingredient-level relaSource=ATC
+     *      query and filters the results using the DFG-based Route→ATC Matrix.
+     *
+     *   3. Property API (last resort) — checks the rxcui property endpoint for
+     *      direct ATC property values, filtered by DFG route.
+     */
     async function fetchRxcuiToAtc(rxcui) {
       console.log("[RxCUI→ATC] === Starting RxCUI to ATC conversion ===");
       console.log("[RxCUI→ATC] Input RxCUI:", rxcui);
 
       try {
-        const propUrl = `${RXNAV_REST}/rxcui/${rxcui}/property.json?propName=ATC`;
-        let data = await fetchJsonExternal(propUrl);
+        // --- Fire all data sources in parallel ---
+        const [atcprodData, dfgNames, rxclassData, propData] = await Promise.all([
+          fetchJsonExternal(`${RXNAV_REST}/rxclass/class/byRxcui.json?rxcui=${encodeURIComponent(rxcui)}&relaSource=ATCPROD`).catch(() => null),
+          fetchRouteInfo(rxcui).catch(() => []),
+          fetchJsonExternal(`${RXNAV_REST}/rxclass/class/byRxcui.json?rxcui=${encodeURIComponent(rxcui)}&relaSource=ATC`).catch(() => null),
+          fetchJsonExternal(`${RXNAV_REST}/rxcui/${rxcui}/property.json?propName=ATC`).catch(() => null),
+        ]);
 
-        if (!data) {
-          const rxclassUrl = `${RXNAV_REST}/rxclass/class/byRxcui.json?rxcui=${encodeURIComponent(rxcui)}&relaSource=ATC`;
-          data = await fetchJsonExternal(rxclassUrl);
-          if (!data || !data.rxclassDrugInfoList || !data.rxclassDrugInfoList.rxclassDrugInfo) return null;
-          const atcInfo = data.rxclassDrugInfoList.rxclassDrugInfo;
+        // ============================================================
+        //  STRATEGY 1: ATCPROD — direct product-level ATC mapping
+        // ============================================================
+        if (atcprodData && atcprodData.rxclassDrugInfoList && atcprodData.rxclassDrugInfoList.rxclassDrugInfo) {
+          const info = atcprodData.rxclassDrugInfoList.rxclassDrugInfo;
+          const infoArr = Array.isArray(info) ? info : [info];
+
+          // De-duplicate ATC class IDs (ATCPROD may return the same classId
+          // for both the SCD and SBD form of the same drug)
+          const seen = new Set();
+          const uniqueClasses = [];
+          for (const item of infoArr) {
+            const min = item && item.rxclassMinConceptItem;
+            const classId = min && min.classId != null ? String(min.classId).trim() : null;
+            if (!classId || seen.has(classId)) continue;
+            seen.add(classId);
+            const className = min.className != null ? String(min.className).trim() : "Name not available";
+            uniqueClasses.push({ code: classId, name: className });
+          }
+
+          if (uniqueClasses.length > 0) {
+            console.log("[RxCUI→ATC] ATCPROD hit:", uniqueClasses.map(c => c.code).join(', '));
+
+            // ATCPROD returns Level 4 codes — resolve each to Level 5
+            const level4Ids = uniqueClasses.map(c => c.code).filter(c => c.length >= 4 && c.length <= 5);
+            if (level4Ids.length > 0) {
+              const level5 = await resolveLevel5FromClassMembers(rxcui, level4Ids);
+              if (level5 && level5.length > 0) return level5;
+            }
+
+            // If Level 5 resolution failed, check for direct Level 5 codes
+            const level5Direct = uniqueClasses.filter(c => c.code.length === 7);
+            if (level5Direct.length > 0) return level5Direct;
+
+            // Return Level 4 with names as last resort from ATCPROD
+            return uniqueClasses;
+          }
+        }
+        console.log("[RxCUI→ATC] ATCPROD returned no data — falling back to ingredient ATC + DFG filter");
+
+        // ============================================================
+        //  STRATEGY 2: Ingredient-level ATC + DFG route filter
+        // ============================================================
+        const route = resolveRoute(dfgNames);
+        console.log("[RxCUI→ATC] DFG:", dfgNames, "→ Route:", route);
+
+        if (rxclassData && rxclassData.rxclassDrugInfoList && rxclassData.rxclassDrugInfoList.rxclassDrugInfo) {
+          const atcInfo = rxclassData.rxclassDrugInfoList.rxclassDrugInfo;
           const atcArray = Array.isArray(atcInfo) ? atcInfo : [atcInfo];
           const atcList = atcArray.map(item => {
             const min = item && item.rxclassMinConceptItem;
@@ -3030,49 +3318,38 @@ const HCC_RAF_DATA = {"community":{"1":0.301,"2":0.5,"6":0.381,"17":4.209,"18":2
             const name = min && min.className != null ? String(min.className).trim() : "Name not available";
             return code ? { code, name } : null;
           }).filter(Boolean);
-          const level5 = atcList.filter(item => item.code.length === 7);
+
+          const level5 = filterAtcByRoute(atcList.filter(item => item.code.length === 7), route);
           if (level5.length > 0) return level5;
-          const level4Ids = atcList.map(item => item.code).filter(c => c.length === 5);
+
+          const level4Ids = filterAtcByRoute(
+            atcList.map(item => item.code).filter(c => c.length === 5),
+            route
+          );
+          console.log("[RxCUI→ATC] Level 4 codes after route filter:", level4Ids);
           if (level4Ids.length > 0) return await resolveLevel5FromClassMembers(rxcui, level4Ids);
-          return null;
         }
 
-        const group = data.propConceptGroup;
-        if (!group) {
-          const rxclassUrl = `${RXNAV_REST}/rxclass/class/byRxcui.json?rxcui=${encodeURIComponent(rxcui)}&relaSource=ATC`;
-          data = await fetchJsonExternal(rxclassUrl);
-          if (data && data.rxclassDrugInfoList && data.rxclassDrugInfoList.rxclassDrugInfo) {
-            const atcArray = Array.isArray(data.rxclassDrugInfoList.rxclassDrugInfo) ? data.rxclassDrugInfoList.rxclassDrugInfo : [data.rxclassDrugInfoList.rxclassDrugInfo];
-            const atcList = atcArray.map(item => {
-              const min = item && item.rxclassMinConceptItem;
-              const code = min && min.classId != null ? String(min.classId).trim() : null;
-              const name = min && min.className != null ? String(min.className).trim() : "Name not available";
-              return code ? { code, name } : null;
-            }).filter(Boolean);
-            const level5 = atcList.filter(item => item.code.length === 7);
-            if (level5.length > 0) return level5;
-            const level4Ids = atcList.map(item => item.code).filter(c => c.length === 5);
-            if (level4Ids.length > 0) return await resolveLevel5FromClassMembers(rxcui, level4Ids);
+        // ============================================================
+        //  STRATEGY 3: Property API (last resort)
+        // ============================================================
+        if (propData && propData.propConceptGroup) {
+          const propConcept = propData.propConceptGroup.propConcept;
+          let atcCodes = [];
+          if (Array.isArray(propConcept)) {
+            atcCodes = propConcept.map(item => (item && item.propValue != null) ? String(item.propValue).trim() : null).filter(Boolean);
+          } else if (propConcept && propConcept.propValue != null) {
+            atcCodes = [String(propConcept.propValue).trim()];
           }
-          return null;
+
+          if (atcCodes.length > 0) {
+            const level5Codes = filterAtcByRoute(atcCodes.filter(c => c.length === 7), route);
+            if (level5Codes.length > 0) return await getATCNamesForCodes(level5Codes);
+            const level4Codes = filterAtcByRoute(atcCodes.filter(c => c.length === 5), route);
+            if (level4Codes.length > 0) return await resolveLevel5FromClassMembers(rxcui, level4Codes);
+          }
         }
 
-        const propConcept = group.propConcept;
-        let atcCodes = [];
-        if (Array.isArray(propConcept)) {
-          atcCodes = propConcept.map(item => (item && item.propValue != null) ? String(item.propValue).trim() : null).filter(Boolean);
-        } else if (propConcept && (propConcept.propValue != null || propConcept.propValue === "")) {
-          atcCodes = [String(propConcept.propValue).trim()];
-        }
-
-        const level5Codes = atcCodes.filter(c => c.length === 7);
-        if (level5Codes.length > 0) {
-          return await getATCNamesForCodes(level5Codes);
-        }
-        const level4Codes = atcCodes.filter(c => c.length === 5);
-        if (level4Codes.length > 0) {
-          return await resolveLevel5FromClassMembers(rxcui, level4Codes);
-        }
         return null;
       } catch (e) {
         console.error("[RxCUI→ATC] Error:", e);
@@ -3709,6 +3986,7 @@ const HCC_RAF_DATA = {"community":{"1":0.301,"2":0.5,"6":0.381,"17":4.209,"18":2
       const selected = document.querySelector('input[name="codeType"]:checked');
       const typeId = selected ? selected.value : "icd";
       const section = document.getElementById("diagnosisSearchSection");
+      const bulkSection = document.getElementById("bulkAnalyzeSection");
       if (!section) return;
       if ((typeId === "icd" || typeId === "loinc") && typeId !== "auto") {
         section.style.display = "block";
@@ -3717,6 +3995,8 @@ const HCC_RAF_DATA = {"community":{"1":0.301,"2":0.5,"6":0.381,"17":4.209,"18":2
         section.style.display = "none";
         clearSearch();
       }
+      // Bulk analyze visible only in ICD mode
+      if (bulkSection) bulkSection.style.display = (typeId === "icd") ? "block" : "none";
     }
 
     function updateExamples() {
@@ -3947,6 +4227,111 @@ const HCC_RAF_DATA = {"community":{"1":0.301,"2":0.5,"6":0.381,"17":4.209,"18":2
 
     document.getElementById("codeInput").addEventListener("keydown", (e) => {
       if (e.key === "Enter") document.getElementById("lookupBtn").click();
+    });
+
+    // ---- Bulk ICD-10 Analysis ----
+    function parseBulkCodes(raw) {
+      return raw
+        .split(/[\s,;\t\n\r|]+/)
+        .map(s => s.replace(/[^A-Za-z0-9.]/g, '').trim().toUpperCase())
+        .filter(s => s.length >= 3 && /^[A-TV-Z]\d/.test(s));
+    }
+
+    document.getElementById("bulkTextarea").addEventListener("input", function() {
+      const codes = parseBulkCodes(this.value);
+      const el = document.getElementById("bulkCodeCount");
+      el.textContent = codes.length > 0 ? codes.length + " code" + (codes.length !== 1 ? "s" : "") + " detected" : "";
+    });
+
+    document.getElementById("bulkClearBtn").addEventListener("click", function() {
+      document.getElementById("bulkTextarea").value = "";
+      document.getElementById("bulkCodeCount").textContent = "";
+      document.getElementById("bulkResultArea").innerHTML = "";
+    });
+
+    document.getElementById("bulkRunBtn").addEventListener("click", async function() {
+      const textarea = document.getElementById("bulkTextarea");
+      const resultArea = document.getElementById("bulkResultArea");
+      const codes = parseBulkCodes(textarea.value);
+      if (codes.length === 0) {
+        resultArea.innerHTML = '<div class="message error" style="margin-top:1rem">No valid ICD-10 codes detected. Paste codes like E11.9, I10, J45.20</div>';
+        return;
+      }
+
+      // De-duplicate while preserving order
+      const seen = new Set();
+      const unique = [];
+      for (const c of codes) {
+        const norm = c.replace(/\./g, '');
+        if (!seen.has(norm)) { seen.add(norm); unique.push(c); }
+      }
+
+      const btn = this;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner" style="border-width:2px;width:.85rem;height:.85rem"></span> Analyzing ' + unique.length + ' codes...';
+      resultArea.innerHTML = '';
+
+      // Lookup all codes in parallel — use NLM only (fast, no CORS proxy fallback)
+      // with a 8s per-code timeout to prevent hangs
+      const BULK_TIMEOUT = 8000;
+      const results = await Promise.all(unique.map(async (code) => {
+        try {
+          const data = await Promise.race([
+            fetchIcdNlm(normalizeIcd10(code)),
+            new Promise(resolve => setTimeout(() => resolve(null), BULK_TIMEOUT))
+          ]);
+          const displayName = data ? (data.display_name || '—') : null;
+          const resolvedCode = data ? (data.code_value || code) : code;
+          const hccVal = lookupHcc(resolvedCode);
+          // Also try without dot if the first lookup missed
+          const hccVal2 = hccVal === null ? lookupHcc(code.replace(/\./g, '')) : null;
+          const finalHcc = hccVal !== null ? hccVal : hccVal2;
+          let rafTotal = 0;
+          let hccNums = [];
+          if (finalHcc !== null) {
+            hccNums = Array.isArray(finalHcc) ? finalHcc : [finalHcc];
+            rafTotal = hccNums.reduce((s, n) => s + (getHccRaf(n) || 0), 0);
+          }
+          return { code: resolvedCode, name: displayName, hccNums, raf: rafTotal, found: !!data };
+        } catch (_) {
+          return { code, name: null, hccNums: [], raf: 0, found: false };
+        }
+      }));
+
+      // Build table
+      let tableRows = '';
+      let raCount = 0;
+      let totalRaf = 0;
+      for (const r of results) {
+        const codeHtml = '<span class="bulk-code">' + escapeHtml(r.code) + '</span>';
+        const nameHtml = r.found ? escapeHtml(r.name) : '<span class="bulk-not-found">Not found</span>';
+        let rafHtml;
+        if (r.hccNums.length > 0) {
+          raCount++;
+          totalRaf += r.raf;
+          const hccTags = r.hccNums.map(n => '<span class="bulk-hcc-tag">HCC ' + n + '</span>').join(' ');
+          rafHtml = '<span class="bulk-raf ra">' + r.raf.toFixed(3) + '</span> ' + hccTags;
+        } else {
+          rafHtml = '<span class="bulk-raf not-ra">' + (r.found ? '0.000' : '—') + '</span>';
+        }
+        tableRows += '<tr><td>' + codeHtml + '</td><td>' + nameHtml + '</td><td>' + rafHtml + '</td></tr>';
+      }
+
+      const totalDollar = formatDollar(rafToDollar(totalRaf));
+      const summaryHtml = '<div class="bulk-summary">' +
+        '<div class="bulk-summary-stat"><span class="bss-val">' + results.length + '</span><span class="bss-label">Codes</span></div>' +
+        '<div class="bulk-summary-stat"><span class="bss-val">' + raCount + '</span><span class="bss-label">Risk-Adjusting</span></div>' +
+        '<div class="bulk-summary-stat"><span class="bss-val">' + totalRaf.toFixed(3) + '</span><span class="bss-label">Total RAF</span></div>' +
+        '<div class="bulk-summary-stat"><span class="bss-val">' + totalDollar + '</span><span class="bss-label">Est. Annual Value</span></div>' +
+      '</div>';
+
+      resultArea.innerHTML = summaryHtml +
+        '<div class="bulk-table-wrap"><table class="bulk-table">' +
+        '<thead><tr><th>ICD Code</th><th>Description</th><th>RAF / HCC</th></tr></thead>' +
+        '<tbody>' + tableRows + '</tbody></table></div>';
+
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-table-list mr-2 text-sm"></i>Analyze';
     });
   </script>
   <script>
